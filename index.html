@@ -164,13 +164,12 @@
         let inventoryData = JSON.parse(localStorage.getItem("gravafilt_inventory")) || initInventory();
         let historyLogs = JSON.parse(localStorage.getItem("gravafilt_history_logs")) || [];
 
-        // Función estricta para obtener fecha y hora actual en Argentina
         function obtenerFechaHoraArg() {
             const ahora = new Date();
             const opcionesFecha = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' };
             const opcionesHora = { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             
-            const fechaStr = ahora.toLocaleDateString('es-AR', opcionesFecha).split('/').reverse().join('-'); // YYYY-MM-DD
+            const fechaStr = ahora.toLocaleDateString('es-AR', opcionesFecha).split('/').reverse().join('-');
             const horaStr = ahora.toLocaleTimeString('es-AR', opcionesHora);
             const completoStr = `${ahora.toLocaleDateString('es-AR')} ${horaStr}`;
 
