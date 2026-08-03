@@ -32,7 +32,7 @@
         <div class="flex items-center space-x-4">
             <span id="userBadge" class="bg-slate-700 text-amber-400 text-xs px-3 py-1 rounded-full font-medium"></span>
             <button id="adminLink" onclick="window.location.href='admin.html'" class="hidden bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-gauge-high mr-1"></i> Panel Admin & Historial</button>
-            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Excel Actual</button>
+            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Excel (Fecha/Hora)</button>
             <button onclick="sessionStorage.clear(); window.location.href='login.html';" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
     </header>
@@ -92,7 +92,7 @@
                             <th class="p-3">Stock Final</th>
                             <th class="p-3">Área (m²)</th>
                             <th class="p-3">Área SR Measure</th>
-                            <th class="p-3 text-center">Gestión de Salidas / Tickets</th>
+                            <th class="p-3 text-center">Gestión de Salidas / Tickets / Reset</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody" class="divide-y divide-slate-700">
@@ -189,7 +189,7 @@
                 id_unico: 'LOG-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
                 fecha: timestamp.toISOString().split('T')[0],
                 hora: timestamp.toLocaleTimeString(),
-                timestamp_completo: timestamp.toISOString(),
+                timestamp_completo: timestamp.toLocaleString(),
                 usuario: session.name,
                 categoria: cat,
                 material: item,
@@ -342,7 +342,7 @@
                 rec.ultima_actualizacion = new Date().toLocaleString();
                 registrarLogHistorico(cat, item, "RESET SALIDAS", `Corrección de arrastre: Salidas reseteadas desde ${salidasAnteriores} m³ a 0 m³`);
                 renderTable();
-                alert(`Se han reseteado las salidas de "${item}" a 0 m³ correctamente. El cambio ha sido auditado.`);
+                alert(`Se han reseteado las salidas de "${item}" a 0 m³ correctamente.`);
             }
         }
 
@@ -372,21 +372,24 @@
         }
 
         function exportarRegistrosExcel() {
-            let dataExport = [];
-            for (let cat in CATALOGOS) {
-                for (let item in CATALOGOS[cat]) {
-                    let r = inventoryData[cat][item];
-                    dataExport.push({ Categoria: cat, Material: item, Sector: r.sector, Stock_Inicial: r.stock_inicial, Entradas: r.entradas, Salidas_Acumuladas: r.salidas, Stock_Final: r.stock_final, Area_m2: r.area_m2, Ultima_Actualizacion: r.ultima_actualizacion });
-                }
-            }
-            if(dataExport.length === 0) {
-                alert("No hay datos para exportar.");
+            if (historyLogs.length === 0) {
+                alert("No hay registros históricos para exportar.");
                 return;
             }
+            let dataExport = historyLogs.map(l => ({
+                "ID Registro": l.id_unico,
+                "Fecha y Hora Evento": l.timestamp_completo || (l.fecha + ' ' + l.hora),
+                "Usuario": l.usuario,
+                "Micrositio / Segmento": l.categoria,
+                "Material": l.material,
+                "Acción": l.accion,
+                "Detalle": l.detalle,
+                "Stock Final Resultante (m³)": l.stock_final_resultado
+            }));
             const ws = XLSX.utils.json_to_sheet(dataExport);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Stock_Actual");
-            XLSX.writeFile(wb, `Gravafilt_Stock_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Trazabilidad_Operativa");
+            XLSX.writeFile(wb, `Gravafilt_Trazabilidad_Operativa_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         const ctx = document.getElementById('evolutionChart').getContext('2d');
