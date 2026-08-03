@@ -91,7 +91,7 @@
                             <th class="p-3">Salidas Acumuladas</th>
                             <th class="p-3">Stock Final</th>
                             <th class="p-3">Área (m²)</th>
-                            <th class="p-3">Acción SR Measure</th>
+                            <th class="p-3">Área SR Measure</th>
                             <th class="p-3 text-center">Gestión de Salidas / Tickets</th>
                         </tr>
                     </thead>
@@ -229,9 +229,6 @@
                 record.stock_final = Number(record.stock_inicial) + Number(record.entradas) - Number(record.salidas);
                 stocksArray.push(record.stock_final);
 
-                // En el micrositio construccion, todos los ítems usan tickets acumulables
-                const usarTickets = currentTab === 'construccion';
-
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-700/30 transition">
                         <td class="p-3 font-medium text-white">${item}<br><span class="text-[10px] text-slate-500">Act: ${record.ultima_actualizacion}</span></td>
@@ -257,8 +254,13 @@
                                 <input type="file" class="hidden" accept="image/*" onchange="procesarSRMeasure(this, '${currentTab}', '${item}')">
                             </label>
                         </td>
-                        <td class="p-3 text-center">
-                            <button onclick="registrarTicketVenta('${currentTab}', '${item}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition shadow"><i class="fa-solid fa-ticket mr-1"></i> Registrar Ticket (0.5 - 30m³)</button>
+                        <td class="p-3 text-center flex justify-center space-x-2">
+                            <button onclick="registrarTicketVenta('${currentTab}', '${item}')" title="Registrar Ticket de Salida" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded text-xs font-semibold transition shadow">
+                                <i class="fa-solid fa-ticket mr-1"></i> Ticket
+                            </button>
+                            <button onclick="resetearSalidasItem('${currentTab}', '${item}')" title="Resetear Salidas Acumuladas a 0" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-2.5 py-1.5 rounded text-xs transition shadow">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
                         </td>
                     </tr>
                 `;
@@ -323,6 +325,24 @@
                 } else {
                     alert("Error en el rango del ticket (debe ser entre 0.5 y 30 m³).");
                 }
+            }
+        }
+
+        function resetearSalidasItem(cat, item) {
+            let rec = inventoryData[cat][item];
+            let salidasAnteriores = rec.salidas;
+            
+            if (salidasAnteriores === 0) {
+                alert("Las salidas acumuladas para este material ya se encuentran en 0.");
+                return;
+            }
+
+            if (confirm(`¿Confirma blanquear y reiniciar a 0 las salidas acumuladas de "${item}"? (Valor actual a descartar: ${salidasAnteriores} m³)`)) {
+                rec.salidas = 0;
+                rec.ultima_actualizacion = new Date().toLocaleString();
+                registrarLogHistorico(cat, item, "RESET SALIDAS", `Corrección de arrastre: Salidas reseteadas desde ${salidasAnteriores} m³ a 0 m³`);
+                renderTable();
+                alert(`Se han reseteado las salidas de "${item}" a 0 m³ correctamente. El cambio ha sido auditado.`);
             }
         }
 
