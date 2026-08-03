@@ -52,7 +52,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 id="currentCategoryTitle" class="text-xl font-bold text-white">Micrositio: Materias Primas</h2>
-                    <p class="text-xs text-slate-400 mt-1">Gestión de existencias, rotación de sectores, stock inicial y salidas diarias automáticas</p>
+                    <p class="text-xs text-slate-400 mt-1">Gestión de existencias, rotación de sectores, stock inicial y entradas ajustables (SR Measure)</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded">Sectores: Zona Costa, Silos, Zona Planta</span>
@@ -67,11 +67,11 @@
                             <th class="p-3">Material / Ítem</th>
                             <th class="p-3">Sector Predio</th>
                             <th class="p-3">Stock Inicial</th>
-                            <th class="p-3">Entradas (SR Measure)</th>
+                            <th class="p-3">Entradas (SR Measure Ajustable)</th>
                             <th class="p-3">Salidas Diarias</th>
                             <th class="p-3">Stock Final</th>
                             <th class="p-3">Área (m²)</th>
-                            <th class="p-3">SR Measure (Foto/Plano)</th>
+                            <th class="p-3">Acción SR Measure (Foto/Plano)</th>
                             <th class="p-3 text-center">Acciones / Tickets</th>
                         </tr>
                     </thead>
@@ -206,7 +206,9 @@
                         <td class="p-3">
                             <input type="number" value="${record.stock_inicial}" onchange="actualizarStockInicial('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 w-24 focus:outline-none focus:border-amber-500"> m³
                         </td>
-                        <td class="p-3 text-emerald-400 font-semibold">+${record.entradas} m³</td>
+                        <td class="p-3">
+                            <input type="number" value="${record.entradas}" onchange="actualizarEntradas('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-emerald-400 font-semibold rounded px-2 py-1 w-24 focus:outline-none focus:border-emerald-500"> m³
+                        </td>
                         <td class="p-3 text-rose-400 font-semibold">-${record.salidas} m³</td>
                         <td class="p-3 font-bold text-amber-400 text-base">${record.stock_final} m³</td>
                         <td class="p-3">${record.area_m2} m²</td>
@@ -245,11 +247,21 @@
             }
         }
 
+        function actualizarEntradas(cat, item, nuevasEntradas) {
+            let val = Number(nuevasEntradas);
+            if (!isNaN(val)) {
+                let rec = inventoryData[cat][item];
+                rec.entradas = val;
+                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
+                localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+                renderTable();
+            }
+        }
+
         function registrarTicketVenta(cat, item) {
             const ticketVal = prompt(`Ingrese los metros cúbicos del ticket de venta (Ej: 5.5, 12, 0.5 - Rango de 0.5 a 30 m³):`, "5.5");
             if (ticketVal !== null) {
                 let cant = parseFloat(ticketVal.replace(',', '.'));
-                // Validación estricta de rango (0.5 a 30) permitiendo decimales (múltiplos o pasos de 0.5)
                 if (!isNaN(cant) && cant >= 0.5 && cant <= 30 && (cant * 2) % 1 === 0) {
                     let rec = inventoryData[cat][item];
                     rec.salidas = Number(rec.salidas) + cant;
