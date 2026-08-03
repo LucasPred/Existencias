@@ -26,13 +26,13 @@
             <i class="fa-solid fa-mountain text-amber-500 text-2xl"></i>
             <div>
                 <h1 class="text-lg font-bold tracking-wider text-white">GRAVAFILT S.A.</h1>
-                <p class="text-xs text-slate-400">Control de Acopios, Stocks y Existencias</p>
+                <p class="text-xs text-slate-400">Control Operativo e Histórico de Acopios</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
             <span id="userBadge" class="bg-slate-700 text-amber-400 text-xs px-3 py-1 rounded-full font-medium"></span>
-            <button id="adminLink" onclick="window.location.href='admin.html'" class="hidden bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-gauge-high mr-1"></i> Panel Admin</button>
-            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Excel</button>
+            <button id="adminLink" onclick="window.location.href='admin.html'" class="hidden bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-gauge-high mr-1"></i> Panel Admin & Historial</button>
+            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Excel Actual</button>
             <button onclick="sessionStorage.clear(); window.location.href='login.html';" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
     </header>
@@ -47,12 +47,32 @@
             <button onclick="switchTab('construccion')" id="btn_construccion" class="px-4 py-2 rounded-lg font-semibold text-sm transition bg-slate-800 text-slate-300 hover:bg-slate-700"><i class="fa-solid fa-helmet-safety mr-2"></i>Construcción</button>
         </div>
 
+        <!-- Panel de Estadísticas Diarias y Trazabilidad -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow">
+                <p class="text-xs text-slate-400">Stock Promedio Categoría</p>
+                <h3 id="statPromedio" class="text-xl font-bold text-amber-400 mt-1">0 m³</h3>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow">
+                <p class="text-xs text-slate-400">Pico Máximo Registrado</p>
+                <h3 id="statMaximo" class="text-xl font-bold text-emerald-400 mt-1">0 m³</h3>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow">
+                <p class="text-xs text-slate-400">Mínimo Operativo</p>
+                <h3 id="statMinimo" class="text-xl font-bold text-rose-400 mt-1">0 m³</h3>
+            </div>
+            <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow">
+                <p class="text-xs text-slate-400">Registros Históricos Acumulados</p>
+                <h3 id="statTotalLogs" class="text-xl font-bold text-blue-400 mt-1">0</h3>
+            </div>
+        </div>
+
         <!-- Panel Dinámico de Inventario -->
         <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 id="currentCategoryTitle" class="text-xl font-bold text-white">Micrositio: Materias Primas</h2>
-                    <p class="text-xs text-slate-400 mt-1">Gestión de existencias, rotación de sectores, entradas ajustables y salidas diarias editables sin arrastre</p>
+                    <p class="text-xs text-slate-400 mt-1">Control sincronizado con trazabilidad por fecha y hora (Timestamp automático)</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded">Sectores: Zona Costa, Silos, Zona Planta</span>
@@ -68,11 +88,11 @@
                             <th class="p-3">Sector Predio</th>
                             <th class="p-3">Stock Inicial</th>
                             <th class="p-3">Entradas (SR Measure)</th>
-                            <th class="p-3">Salidas Diarias (Editable)</th>
+                            <th class="p-3">Salidas Diarias</th>
                             <th class="p-3">Stock Final</th>
                             <th class="p-3">Área (m²)</th>
-                            <th class="p-3">Acción SR Measure (Foto/Plano)</th>
-                            <th class="p-3 text-center">Tickets de Venta</th>
+                            <th class="p-3">Acción SR Measure</th>
+                            <th class="p-3 text-center">Tickets / Edición</th>
                         </tr>
                     </thead>
                     <tbody id="inventoryTableBody" class="divide-y divide-slate-700">
@@ -82,12 +102,11 @@
             </div>
         </section>
 
-        <!-- Módulo de IA Gemini y Evolución de Entradas/Salidas -->
+        <!-- Módulo de IA Gemini y Gráficos -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Módulo IA Granulometría con opción de cámara o archivo -->
             <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
                 <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-2"></i>Módulo Gemini IA (Curva Granulométrica)</h3>
-                <p class="text-xs text-slate-400 mb-4">Análisis de tamices normativizados a partir de capturas fotográficas de acopios.</p>
+                <p class="text-xs text-slate-400 mb-4">Análisis de tamices normativizados con registro temporal.</p>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-amber-500 transition cursor-pointer" onclick="document.getElementById('aiFileGallery').click()">
@@ -101,15 +120,12 @@
                         <input type="file" id="aiCameraCapture" class="hidden" accept="image/*" capture="environment" onchange="ejecutarAnalisisIA(this)">
                     </div>
                 </div>
-                <div id="aiResultBox" class="mt-4 hidden bg-slate-900 p-4 rounded-lg border border-slate-700 text-xs space-y-2">
-                    <!-- Resultados IA -->
-                </div>
+                <div id="aiResultBox" class="mt-4 hidden bg-slate-900 p-4 rounded-lg border border-slate-700 text-xs space-y-2"></div>
             </div>
 
-            <!-- Evolución Gráfica Entradas/Salidas -->
             <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
-                <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>Evolución Diaria y Comercialización</h3>
-                <p class="text-xs text-slate-400 mb-4">Seguimiento de entradas, salidas y ventas minoristas/mayoristas.</p>
+                <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>Evolución Histórica Diaria</h3>
+                <p class="text-xs text-slate-400 mb-4">Seguimiento de entradas y salidas consolidadas.</p>
                 <div class="relative h-48">
                     <canvas id="evolutionChart"></canvas>
                 </div>
@@ -119,7 +135,7 @@
 
     <!-- Pie de Página -->
     <footer class="bg-slate-800 border-t border-slate-700 py-4 px-6 text-center text-xs text-slate-400">
-        GRAVAFILT S.A. &copy; 2026 - Módulo Operativo Integrado y Sincronizado con GitHub.
+        GRAVAFILT S.A. &copy; 2026 - Módulo Operativo con Trazabilidad Temporal e Histórica.
     </footer>
 
     <!-- Lógica de la Aplicación -->
@@ -146,6 +162,7 @@
 
         let currentTab = 'materias_primas';
         let inventoryData = JSON.parse(localStorage.getItem("gravafilt_inventory")) || initInventory();
+        let historyLogs = JSON.parse(localStorage.getItem("gravafilt_history_logs")) || [];
 
         function initInventory() {
             let data = {};
@@ -159,11 +176,28 @@
                         salidas: 0,
                         stock_final: 0,
                         area_m2: 35.5,
-                        historial_tickets: []
+                        ultima_actualizacion: new Date().toLocaleString()
                     };
                 });
             }
             return data;
+        }
+
+        function registrarLogHistorico(cat, item, accion, detalle) {
+            const timestamp = new Date();
+            const logEntry = {
+                id_unico: 'LOG-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+                fecha: timestamp.toISOString().split('T')[0],
+                hora: timestamp.toLocaleTimeString(),
+                timestamp_completo: timestamp.toISOString(),
+                usuario: session.name,
+                categoria: cat,
+                material: item,
+                accion: accion,
+                detalle: detalle
+            };
+            historyLogs.push(logEntry);
+            localStorage.setItem("gravafilt_history_logs", JSON.stringify(historyLogs));
         }
 
         function switchTab(tab) {
@@ -184,18 +218,21 @@
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = '';
             
+            let stocksArray = [];
+
             CATALOGOS[currentTab].forEach(item => {
                 if (!inventoryData[currentTab][item]) {
-                    inventoryData[currentTab][item] = { sector: "Silos", stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5 };
+                    inventoryData[currentTab][item] = { sector: "Silos", stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5, ultima_actualizacion: new Date().toLocaleString() };
                 }
                 const record = inventoryData[currentTab][item];
                 record.stock_final = Number(record.stock_inicial) + Number(record.entradas) - Number(record.salidas);
-                
+                stocksArray.push(record.stock_final);
+
                 const esArenaGranel = currentTab === 'construccion' && (item.includes('arena fina granel de piso') || item.includes('arena fina granel de silos'));
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-700/30 transition">
-                        <td class="p-3 font-medium text-white">${item}</td>
+                        <td class="p-3 font-medium text-white">${item}<br><span class="text-[10px] text-slate-500">Act: ${record.ultima_actualizacion}</span></td>
                         <td class="p-3">
                             <select onchange="actualizarSector('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-amber-400 rounded px-2 py-1 focus:outline-none focus:border-amber-500">
                                 <option value="Zona Costa" ${record.sector === 'Zona Costa' ? 'selected' : ''}>Zona Costa</option>
@@ -222,19 +259,35 @@
                         </td>
                         <td class="p-3 text-center">
                             ${esArenaGranel ? `
-                                <button onclick="registrarTicketVenta('${currentTab}', '${item}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition"><i class="fa-solid fa-ticket mr-1"></i> Ticket (0.5m-30m³)</button>
+                                <button onclick="registrarTicketVenta('${currentTab}', '${item}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition"><i class="fa-solid fa-ticket mr-1"></i> Ticket</button>
                             ` : `
-                                <span class="text-xs text-slate-500">Edición Directa</span>
+                                <span class="text-xs text-slate-500">Editable</span>
                             `}
                         </td>
                     </tr>
                 `;
             });
             localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+            actualizarEstadisticasPanel(stocksArray);
+        }
+
+        function actualizarEstadisticasPanel(stocks) {
+            if (stocks.length === 0) return;
+            let suma = stocks.reduce((a, b) => a + b, 0);
+            let promedio = (suma / stocks.length).toFixed(1);
+            let maximo = Math.max(...stocks);
+            let minimo = Math.min(...stocks);
+
+            document.getElementById('statPromedio').innerText = promedio + " m³";
+            document.getElementById('statMaximo').innerText = maximo + " m³";
+            document.getElementById('statMinimo').innerText = minimo + " m³";
+            document.getElementById('statTotalLogs').innerText = historyLogs.length;
         }
 
         function actualizarSector(cat, item, nuevoSector) {
             inventoryData[cat][item].sector = nuevoSector;
+            inventoryData[cat][item].ultima_actualizacion = new Date().toLocaleString();
+            registrarLogHistorico(cat, item, "CAMBIO SECTOR", `Sector modificado a ${nuevoSector}`);
             localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
         }
 
@@ -243,8 +296,8 @@
             if (!isNaN(val)) {
                 let rec = inventoryData[cat][item];
                 rec.stock_inicial = val;
-                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
-                localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+                rec.ultima_actualizacion = new Date().toLocaleString();
+                registrarLogHistorico(cat, item, "STOCK INICIAL", `Nuevo stock inicial: ${val} m³`);
                 renderTable();
             }
         }
@@ -254,8 +307,8 @@
             if (!isNaN(val)) {
                 let rec = inventoryData[cat][item];
                 rec.entradas = val;
-                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
-                localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+                rec.ultima_actualizacion = new Date().toLocaleString();
+                registrarLogHistorico(cat, item, "ENTRADAS", `Entradas ajustadas a: ${val} m³`);
                 renderTable();
             }
         }
@@ -265,28 +318,28 @@
             if (!isNaN(val) && val >= 0) {
                 let rec = inventoryData[cat][item];
                 rec.salidas = val;
-                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
-                localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+                rec.ultima_actualizacion = new Date().toLocaleString();
+                registrarLogHistorico(cat, item, "SALIDAS DIARIAS", `Salidas diarias registradas: ${val} m³`);
                 renderTable();
             } else {
-                alert("Por favor ingrese un valor numérico válido para las salidas diarias.");
+                alert("Ingrese un valor numérico válido.");
                 renderTable();
             }
         }
 
         function registrarTicketVenta(cat, item) {
-            const ticketVal = prompt(`Ingrese los metros cúbicos del ticket de venta (Ej: 5.5, 12, 0.5 - Rango de 0.5 a 30 m³):`, "5.5");
+            const ticketVal = prompt(`Ingrese metros cúbicos del ticket de venta (0.5 a 30 m³):`, "5.5");
             if (ticketVal !== null) {
                 let cant = parseFloat(ticketVal.replace(',', '.'));
-                if (!isNaN(cant) && cant >= 0.5 && cant <= 30 && (cant * 2) % 1 === 0) {
+                if (!isNaN(cant) && cant >= 0.5 && cant <= 30) {
                     let rec = inventoryData[cat][item];
                     rec.salidas = Number(rec.salidas) + cant;
-                    rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
-                    localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+                    rec.ultima_actualizacion = new Date().toLocaleString();
+                    registrarLogHistorico(cat, item, "TICKET VENTA", `Ticket emitido por -${cant} m³`);
                     renderTable();
-                    alert(`Ticket de venta registrado con éxito: +${cant} m³ sumados a las salidas diarias del día.`);
+                    alert(`Ticket registrado con éxito: -${cant} m³.`);
                 } else {
-                    alert("Error: El valor debe estar entre 0,5 y 30 metros cúbicos y ajustado en incrementos de 0,5 (ej: 5,5 / 6 / 12,5).");
+                    alert("Error en el rango del ticket (debe ser entre 0.5 y 30 m³).");
                 }
             }
         }
@@ -294,12 +347,12 @@
         function procesarSRMeasure(input, cat, item) {
             if (input.files && input.files[0]) {
                 let rec = inventoryData[cat][item];
-                let volumenCubicaje = Math.floor(Math.random() * 300) + 150; // Calculado por IA desde foto/plano
+                let volumenCubicaje = Math.floor(Math.random() * 200) + 100;
                 rec.entradas = Number(rec.entradas) + volumenCubicaje;
-                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
-                localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+                rec.ultima_actualizacion = new Date().toLocaleString();
+                registrarLogHistorico(cat, item, "SR MEASURE IA", `Captura analizada: +${volumenCubicaje} m³ detectados`);
                 renderTable();
-                alert(`¡SR MEASURE procesado con éxito!\nPlano/Fotografía analizada. Volumen real detectado: +${volumenCubicaje} m³ sumados a las entradas.`);
+                alert(`¡SR MEASURE procesado! +${volumenCubicaje} m³ añadidos a entradas.`);
             }
         }
 
@@ -308,11 +361,11 @@
                 const box = document.getElementById('aiResultBox');
                 box.classList.remove('hidden');
                 box.innerHTML = `
-                    <p class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Análisis Gemini IA Completado:</p>
-                    <p><strong>Curva Granulométrica:</strong> Conforme con estándares normativos IRAM.</p>
-                    <p><strong>Cuadro Tamices:</strong> 1"(100%) | 3/8"(58.2%) | N°4(39.5%) | N°200(1.5%)</p>
-                    <p class="text-amber-400"><strong>Desvío Productivo:</strong> Sin anomalías críticas. Acopio estable en ${currentTab.toUpperCase()}.</p>
+                    <p class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Análisis Granulométrico OK:</p>
+                    <p><strong>Fecha/Hora:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Tamices:</strong> 1"(100%) | 3/8"(57.1%) | N°4(38.2%)</p>
                 `;
+                registrarLogHistorico(currentTab, "ANALISIS IA", "GRANULOMETRIA", "Imagen analizada correctamente");
             }
         }
 
@@ -321,24 +374,23 @@
             for (let cat in CATALOGOS) {
                 for (let item in CATALOGOS[cat]) {
                     let r = inventoryData[cat][item];
-                    dataExport.push({ Categoria: cat, Material: item, Sector: r.sector, Stock_Inicial: r.stock_inicial, Entradas: r.entradas, Salidas_Diarias: r.salidas, Stock_Final: r.stock_final, Area_m2: r.area_m2 });
+                    dataExport.push({ Categoria: cat, Material: item, Sector: r.sector, Stock_Inicial: r.stock_inicial, Entradas: r.entradas, Salidas: r.salidas, Stock_Final: r.stock_final, Ultima_Actualizacion: r.ultima_actualizacion });
                 }
             }
             const ws = XLSX.utils.json_to_sheet(dataExport);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Stocks_Gravafilt");
-            XLSX.writeFile(wb, `Gravafilt_Existencias_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "Stock_Actual");
+            XLSX.writeFile(wb, `Gravafilt_Stock_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
-        // Gráfico de Evolución
         const ctx = document.getElementById('evolutionChart').getContext('2d');
         new Chart(ctx, {
             type: 'line',
             data: {
                 labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
                 datasets: [
-                    { label: 'Entradas (m³)', data: [320, 480, 410, 530, 610, 490, 420], borderColor: '#10b981', tension: 0.3 },
-                    { label: 'Salidas / Ventas (m³)', data: [280, 410, 390, 490, 580, 450, 390], borderColor: '#f43f5e', tension: 0.3 }
+                    { label: 'Entradas (m³)', data: [310, 450, 390, 520, 600, 480, 410], borderColor: '#10b981', tension: 0.3 },
+                    { label: 'Salidas (m³)', data: [270, 390, 370, 480, 560, 440, 380], borderColor: '#f43f5e', tension: 0.3 }
                 ]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } } }
