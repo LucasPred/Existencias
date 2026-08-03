@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - GRAVAFILT S.A.</title>
+    <!-- Tailwind CSS y Librerías Gráficas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Verificación de Seguridad: Solo Administradores -->
+    <script>
+        const session = JSON.parse(sessionStorage.getItem("gravafilt_user"));
+        if (!session || session.role !== 'admin') {
+            alert("Acceso denegado. Este panel es exclusivo para el Administrador General.");
+            window.location.href = "login.html";
+        }
+    </script>
+
+    <!-- Barra de Navegación -->
+    <header class="bg-slate-800 border-b border-slate-700 px-6 py-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-3">
+            <i class="fa-solid fa-gauge-high text-amber-500 text-2xl"></i>
+            <div>
+                <h1 class="text-lg font-bold tracking-wider text-white">GRAVAFILT S.A. - Panel de Control Administrativo</h1>
+                <p class="text-xs text-slate-400">Tablero exclusivo de incidencias, finanzas y desvíos</p>
+            </div>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="bg-amber-600/20 text-amber-400 text-xs px-3 py-1 rounded-full font-semibold border border-amber-500/30">Admin: gravafilt2026</span>
+            <button onclick="window.location.href='index.html'" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-house mr-1"></i> Sitio Operativo</button>
+            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Todo (Excel)</button>
+            <button onclick="sessionStorage.clear(); window.location.href='login.html';" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-right-from-bracket"></i></button>
+        </div>
+    </header>
+
+    <!-- Contenido Principal del Panel de Control -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
+
+        <!-- Métricas Financieras y Contables ($ / USD) -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase">Valoración Total (ARS)</p>
+                <h3 class="text-2xl font-bold text-emerald-400 mt-2">$ 184,500,000</h3>
+                <span class="text-xs text-emerald-500 mt-1 block"><i class="fa-solid fa-arrow-trend-up"></i> Incidencia contable actualizada</span>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase">Valoración Total (USD)</p>
+                <h3 class="text-2xl font-bold text-amber-400 mt-2">USD 175,200</h3>
+                <span class="text-xs text-amber-500 mt-1 block">Tipo de cambio oficial operativas Vaca Muerta</span>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase">Desvíos y Alertas</p>
+                <h3 class="text-2xl font-bold text-rose-500 mt-2">2 Alertas</h3>
+                <span class="text-xs text-rose-400 mt-1 block">Revisar zona costa y silos</span>
+            </div>
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <p class="text-slate-400 text-xs font-semibold uppercase">Espacio Ocupado Predio</p>
+                <h3 class="text-2xl font-bold text-sky-400 mt-2">2,150 m²</h3>
+                <span class="text-xs text-sky-300 mt-1 block">Capacidad utilizada: 82%</span>
+            </div>
+        </div>
+
+        <!-- Gráficos de Evolución y Distribución por Sectores -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-line text-emerald-400 mr-2"></i>Evolución Diaria (Entradas vs Salidas)</h3>
+                <p class="text-xs text-slate-400 mb-4">Comportamiento logístico general del predio.</p>
+                <div class="relative h-64">
+                    <canvas id="adminEvolutionChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 p-6 rounded-xl border border-slate-700 shadow-xl">
+                <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i>Distribución por Sectores (Predio)</h3>
+                <p class="text-xs text-slate-400 mb-4">Ocupación porcentual entre Zona Costa, Silos y Zona Planta.</p>
+                <div class="relative h-64 flex justify-center">
+                    <canvas id="adminSectorsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Control de Valores y Carga Financiera -->
+        <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
+            <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-calculator text-sky-400 mr-2"></i>Gestión de Precios e Incidencias Contables</h3>
+            <p class="text-xs text-slate-400 mb-6">Actualización de valores unitarios en pesos y dólares para la parametrización de costos y precios de la compañía.</p>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm text-slate-300">
+                    <thead class="bg-slate-700/50 text-xs uppercase text-slate-400">
+                        <tr>
+                            <th class="p-3">Categoría</th>
+                            <th class="p-3">Material / Ítem</th>
+                            <th class="p-3">Valor Unitario (ARS)</th>
+                            <th class="p-3">Valor Unitario (USD)</th>
+                            <th class="p-3 text-center">Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="financialTableBody" class="divide-y divide-slate-700">
+                        <!-- Generado dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pie de Página -->
+    <footer class="bg-slate-800 border-t border-slate-700 py-4 px-6 text-center text-xs text-slate-400">
+        GRAVAFILT S.A. &copy; 2026 - Módulo Administrativo Exclusivo Sincronizado con GitHub.
+    </footer>
+
+    <!-- Lógica del Panel de Control -->
+    <script>
+        const CATALOGOS = {
+            materias_primas: ["arena gruesa", "arena intermedia", "arena fina", "canto rodado", "granza"],
+            productos_aet: [
+                "0,9 premium", "0,9 fuera de encuadre", "0,5-0,6", "grava 2-4", "grava 3-6", 
+                "grava 2-4 para mezcla", "material para reproceso", "granza", "grava 2-3", 
+                "grava 1-2", "grava 1-3", "ajuste limpieza piso", "piedra 12-20", "piedra 6-12", 
+                "fino zaranda piedra", "reproceso de piedra", "canto rodado", "piedra 20-30", 
+                "piedra 30-50", "canto rodado proceso"
+            ],
+            construccion: [
+                "canto rodado 1-2 granel", "canto rodado 1-2 bolson", "piedra partida granel", 
+                "piedra partida bolson", "arena fina granel de piso", "arena fina granel de silos", "arena fina bolson"
+            ]
+        };
+
+        let inventoryData = JSON.parse(localStorage.getItem("gravafilt_inventory")) || {};
+
+        function renderFinancialTable() {
+            const tbody = document.getElementById('financialTableBody');
+            tbody.innerHTML = '';
+
+            for (let cat in CATALOGOS) {
+                CATALOGOS[cat].forEach(item => {
+                    let record = inventoryData[cat] && inventoryData[cat][item] ? inventoryData[cat][item] : { valor_ars: 15000, valor_usd: 14.5 };
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-slate-700/30 transition">
+                            <td class="p-3 text-xs uppercase text-amber-400 font-semibold">${cat.replace('_', ' ')}</td>
+                            <td class="p-3 font-medium text-white">${item}</td>
+                            <td class="p-3"><input type="number" id="ars_${cat}_${item}" value="${record.valor_ars || 15000}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-32 focus:outline-none focus:border-amber-500"></td>
+                            <td class="p-3"><input type="number" id="usd_${cat}_${item}" value="${record.valor_usd || 14.5}" class="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-white text-xs w-32 focus:outline-none focus:border-amber-500"></td>
+                            <td class="p-3 text-center">
+                                <button onclick="guardarValoresFinancieros('${cat}', '${item}')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-3 py-1 rounded text-xs font-medium transition">Guardar</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+            }
+        }
+
+        function guardarValoresFinancieros(cat, item) {
+            const arsVal = document.getElementById(`ars_${cat}_${item}`).value;
+            const usdVal = document.getElementById(`usd_${cat}_${item}`).value;
+
+            if (!inventoryData[cat]) inventoryData[cat] = {};
+            if (!inventoryData[cat][item]) inventoryData[cat][item] = {};
+
+            inventoryData[cat][item].valor_ars = Number(arsVal);
+            inventoryData[cat][item].valor_usd = Number(usdVal);
+
+            localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+            alert(`Valores financieros actualizados para ${item}.`);
+        }
+
+        function exportarRegistrosExcel() {
+            let dataExport = [];
+            for (let cat in CATALOGOS) {
+                CATALOGOS[cat].forEach(item => {
+                    let r = inventoryData[cat] && inventoryData[cat][item] ? inventoryData[cat][item] : {};
+                    dataExport.push({ Categoria: cat, Material: item, Valor_ARS: r.valor_ars || 0, Valor_USD: r.valor_usd || 0 });
+                });
+            }
+            const ws = XLSX.utils.json_to_sheet(dataExport);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Finanzas_Gravafilt");
+            XLSX.writeFile(wb, `Gravafilt_Control_Financiero_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        // Gráficos del Panel Administrativo
+        const ctx1 = document.getElementById('adminEvolutionChart').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+                datasets: [
+                    { label: 'Entradas Generales (m³)', data: [400, 520, 480, 610, 700, 550, 490], borderColor: '#10b981', tension: 0.3 },
+                    { label: 'Salidas Generales (m³)', data: [310, 450, 430, 530, 620, 480, 410], borderColor: '#f43f5e', tension: 0.3 }
+                ]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } } }
+        });
+
+        const ctx2 = document.getElementById('adminSectorsChart').getContext('2d');
+        new Chart(ctx2, {
+            type: 'doughnut',
+            data: {
+                labels: ['Zona Costa', 'Silos', 'Zona Planta'],
+                datasets: [{ data: [35, 45, 20], backgroundColor: ['#3b82f6', '#f59e0b', '#10b981'] }]
+            },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#cbd5e1' } } } }
+        });
+
+        renderFinancialTable();
+    </script>
+</body>
+</html>
