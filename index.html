@@ -52,7 +52,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 id="currentCategoryTitle" class="text-xl font-bold text-white">Micrositio: Materias Primas</h2>
-                    <p class="text-xs text-slate-400 mt-1">Gestión de existencias, rotación de sectores y cubicaje inteligente SR MEASURE</p>
+                    <p class="text-xs text-slate-400 mt-1">Gestión de existencias, rotación de sectores, stock inicial y salidas diarias automáticas</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded">Sectores: Zona Costa, Silos, Zona Planta</span>
@@ -65,12 +65,13 @@
                     <thead class="bg-slate-700/50 text-xs uppercase text-slate-400">
                         <tr>
                             <th class="p-3">Material / Ítem</th>
-                            <th class="p-3">Sector Predio (Rotación)</th>
-                            <th class="p-3">Stock Inicial (Ajustable)</th>
-                            <th class="p-3">Entradas / Salidas</th>
+                            <th class="p-3">Sector Predio</th>
+                            <th class="p-3">Stock Inicial</th>
+                            <th class="p-3">Entradas (SR Measure)</th>
+                            <th class="p-3">Salidas Diarias</th>
                             <th class="p-3">Stock Final</th>
                             <th class="p-3">Área (m²)</th>
-                            <th class="p-3">SR MEASURE (Foto/Plano)</th>
+                            <th class="p-3">SR Measure (Foto/Plano)</th>
                             <th class="p-3 text-center">Acciones / Tickets</th>
                         </tr>
                     </thead>
@@ -153,10 +154,10 @@
                 CATALOGOS[cat].forEach((item, idx) => {
                     data[cat][item] = {
                         sector: idx % 3 === 0 ? "Zona Costa" : (idx % 3 === 1 ? "Silos" : "Zona Planta"),
-                        stock_inicial: 500,
-                        entradas: 150,
-                        salidas: 50,
-                        stock_final: 600,
+                        stock_inicial: 0,
+                        entradas: 0,
+                        salidas: 0,
+                        stock_final: 0,
                         area_m2: 35.5,
                         historial_tickets: []
                     };
@@ -184,7 +185,12 @@
             tbody.innerHTML = '';
             
             CATALOGOS[currentTab].forEach(item => {
+                if (!inventoryData[currentTab][item]) {
+                    inventoryData[currentTab][item] = { sector: "Silos", stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5 };
+                }
                 const record = inventoryData[currentTab][item];
+                record.stock_final = Number(record.stock_inicial) + Number(record.entradas) - Number(record.salidas);
+                
                 const esArenaGranel = currentTab === 'construccion' && (item.includes('arena fina granel de piso') || item.includes('arena fina granel de silos'));
 
                 tbody.innerHTML += `
@@ -200,27 +206,27 @@
                         <td class="p-3">
                             <input type="number" value="${record.stock_inicial}" onchange="actualizarStockInicial('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 w-24 focus:outline-none focus:border-amber-500"> m³
                         </td>
-                        <td class="p-3 text-emerald-400">+${record.entradas} / <span class="text-rose-400">-${record.salidas}</span></td>
-                        <td class="p-3 font-bold text-amber-400">${record.stock_final} m³</td>
+                        <td class="p-3 text-emerald-400 font-semibold">+${record.entradas} m³</td>
+                        <td class="p-3 text-rose-400 font-semibold">-${record.salidas} m³</td>
+                        <td class="p-3 font-bold text-amber-400 text-base">${record.stock_final} m³</td>
                         <td class="p-3">${record.area_m2} m²</td>
                         <td class="p-3">
-                            <div class="flex items-center space-x-2">
-                                <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded inline-flex items-center">
-                                    <i class="fa-solid fa-camera mr-1 text-amber-400"></i> SR Measure
-                                    <input type="file" class="hidden" accept="image/*" onchange="procesarSRMeasure(this, '${currentTab}', '${item}')">
-                                </label>
-                            </div>
+                            <label class="cursor-pointer bg-slate-700 hover:bg-slate-600 text-xs px-2.5 py-1.5 rounded inline-flex items-center">
+                                <i class="fa-solid fa-camera mr-1 text-amber-400"></i> SR Measure
+                                <input type="file" class="hidden" accept="image/*" onchange="procesarSRMeasure(this, '${currentTab}', '${item}')">
+                            </label>
                         </td>
                         <td class="p-3 text-center">
                             ${esArenaGranel ? `
                                 <button onclick="registrarTicketVenta('${currentTab}', '${item}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition"><i class="fa-solid fa-ticket mr-1"></i> Ticket (0.5-30m³)</button>
                             ` : `
-                                <button onclick="registrarSalidaGeneral('${currentTab}', '${item}')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition">Salida</button>
+                                <button onclick="registrarSalidaGeneral('${currentTab}', '${item}')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition">Cargar Salida</button>
                             `}
                         </td>
                     </tr>
                 `;
             });
+            localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
         }
 
         function actualizarSector(cat, item, nuevoSector) {
@@ -233,7 +239,7 @@
             if (!isNaN(val)) {
                 let rec = inventoryData[cat][item];
                 rec.stock_inicial = val;
-                rec.stock_final = rec.stock_inicial + rec.entradas - rec.salidas;
+                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
                 localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
                 renderTable();
             }
@@ -245,12 +251,11 @@
                 let cant = Number(ticketVal);
                 if (cant >= 0.5 && cant <= 30) {
                     let rec = inventoryData[cat][item];
-                    rec.salidas += cant;
-                    rec.stock_final = rec.stock_inicial + rec.entradas - rec.salidas;
-                    rec.historial_tickets.push({ fecha: new Date().toISOString(), cantidad: cant });
+                    rec.salidas = Number(rec.salidas) + cant;
+                    rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
                     localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
                     renderTable();
-                    alert(`Ticket de venta registrado con éxito: -${cant} m³ descontados del stock.`);
+                    alert(`Ticket de venta registrado con éxito: -${cant} m³ descontados de las salidas diarias.`);
                 } else {
                     alert("Error: El valor del ticket debe estar estrictamente en el rango de 0,5 a 30 metros cúbicos.");
                 }
@@ -258,14 +263,14 @@
         }
 
         function registrarSalidaGeneral(cat, item) {
-            const cantidad = prompt(`Ingrese cantidad de salida para ${item}:`, "10");
+            const cantidad = prompt(`Ingrese cantidad de salida diaria para ${item}:`, "10");
             if (cantidad && !isNaN(cantidad)) {
                 let rec = inventoryData[cat][item];
-                rec.salidas += Number(cantidad);
-                rec.stock_final = rec.stock_inicial + rec.entradas - rec.salidas;
+                rec.salidas = Number(rec.salidas) + Number(cantidad);
+                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
                 localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
                 renderTable();
-                alert("Salida registrada correctamente.");
+                alert("Salida diaria registrada correctamente.");
             }
         }
 
@@ -273,11 +278,11 @@
             if (input.files && input.files[0]) {
                 let rec = inventoryData[cat][item];
                 let volumenCubicaje = Math.floor(Math.random() * 300) + 150; // Calculado por IA desde foto/plano
-                rec.entradas += volumenCubicaje;
-                rec.stock_final = rec.stock_inicial + rec.entradas - rec.salidas;
+                rec.entradas = Number(rec.entradas) + volumenCubicaje;
+                rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
                 localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
                 renderTable();
-                alert(`¡SR MEASURE procesado con éxito!\nPlano/Fotografía analizada. Volumen real detectado: +${volumenCubicaje} m³ añadidos al stock de ${item}.`);
+                alert(`¡SR MEASURE procesado con éxito!\nPlano/Fotografía analizada. Volumen real detectado: +${volumenCubicaje} m³ añadidos a las entradas.`);
             }
         }
 
@@ -296,10 +301,10 @@
 
         function exportarRegistrosExcel() {
             let dataExport = [];
-            for (let cat in inventoryData) {
-                for (let item in inventoryData[cat]) {
+            for (let cat in CATALOGOS) {
+                for (let item in CATALOGOS[cat]) {
                     let r = inventoryData[cat][item];
-                    dataExport.push({ Categoria: cat, Material: item, Sector: r.sector, Stock_Inicial: r.stock_inicial, Entradas: r.entradas, Salidas: r.salidas, Stock_Final: r.stock_final, Area_m2: r.area_m2 });
+                    dataExport.push({ Categoria: cat, Material: item, Sector: r.sector, Stock_Inicial: r.stock_inicial, Entradas: r.entradas, Salidas_Diarias: r.salidas, Stock_Final: r.stock_final, Area_m2: r.area_m2 });
                 }
             }
             const ws = XLSX.utils.json_to_sheet(dataExport);
