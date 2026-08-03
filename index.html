@@ -218,7 +218,7 @@
                         </td>
                         <td class="p-3 text-center">
                             ${esArenaGranel ? `
-                                <button onclick="registrarTicketVenta('${currentTab}', '${item}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition"><i class="fa-solid fa-ticket mr-1"></i> Ticket (0.5-30m³)</button>
+                                <button onclick="registrarTicketVenta('${currentTab}', '${item}')" class="bg-emerald-600/20 text-emerald-400 hover:bg-emerald-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition"><i class="fa-solid fa-ticket mr-1"></i> Ticket (0.5m-30m³)</button>
                             ` : `
                                 <button onclick="registrarSalidaGeneral('${currentTab}', '${item}')" class="bg-amber-600/20 text-amber-400 hover:bg-amber-600 hover:text-white px-2.5 py-1 rounded text-xs font-medium transition">Cargar Salida</button>
                             `}
@@ -246,18 +246,19 @@
         }
 
         function registrarTicketVenta(cat, item) {
-            const ticketVal = prompt(`Ingrese los metros cúbicos del ticket de venta (Rango permitido de 0.5 a 30 m³):`, "15");
+            const ticketVal = prompt(`Ingrese los metros cúbicos del ticket de venta (Ej: 5.5, 12, 0.5 - Rango de 0.5 a 30 m³):`, "5.5");
             if (ticketVal !== null) {
-                let cant = Number(ticketVal);
-                if (cant >= 0.5 && cant <= 30) {
+                let cant = parseFloat(ticketVal.replace(',', '.'));
+                // Validación estricta de rango (0.5 a 30) permitiendo decimales (múltiplos o pasos de 0.5)
+                if (!isNaN(cant) && cant >= 0.5 && cant <= 30 && (cant * 2) % 1 === 0) {
                     let rec = inventoryData[cat][item];
                     rec.salidas = Number(rec.salidas) + cant;
                     rec.stock_final = Number(rec.stock_inicial) + Number(rec.entradas) - Number(rec.salidas);
                     localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
                     renderTable();
-                    alert(`Ticket de venta registrado con éxito: -${cant} m³ descontados de las salidas diarias.`);
+                    alert(`Ticket de venta registrado con éxito: -${cant} m³ descontados de las salidas.`);
                 } else {
-                    alert("Error: El valor del ticket debe estar estrictamente en el rango de 0,5 a 30 metros cúbicos.");
+                    alert("Error: El valor debe estar entre 0,5 y 30 metros cúbicos y ajustado en incrementos de 0,5 (ej: 5,5 / 6 / 12,5).");
                 }
             }
         }
