@@ -34,12 +34,12 @@
 
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
 
-        <!-- Matriz de Gestión de Precios y Valorización Contable (Base 31 Días) -->
+        <!-- Matriz de Gestión de Precios y Valorización Contable (Base 31 Días + Stock Real Vinculado) -->
         <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-calculator text-amber-400 mr-2"></i>Matriz de Valorización Contable (Base 31 Días)</h2>
-                    <p class="text-xs text-slate-400 mt-1">Cálculo de existencias por segmento con precios unitarios para la Dirección.</p>
+                    <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-calculator text-amber-400 mr-2"></i>Matriz de Valorización Contable (Sincronizada con Stock Real y 31 Días)</h2>
+                    <p class="text-xs text-slate-400 mt-1">Columna de stock real conectada en tiempo real al inventario de usuario con proyección a 31 días.</p>
                 </div>
                 <button onclick="exportarMatriz31DiasExcel()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-xs font-semibold transition shadow"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Reporte Dirección (31 Días)</button>
             </div>
@@ -60,12 +60,13 @@
                 </div>
             </div>
 
-            <!-- Tabla Matriz 31 Días -->
+            <!-- Tabla Matriz 31 Días con Columna de Stock Real Actualizado -->
             <div class="overflow-x-auto max-h-96">
                 <table class="w-full text-left text-xs text-slate-300">
                     <thead class="bg-slate-700/50 uppercase text-slate-400 sticky top-0">
                         <tr>
                             <th class="p-3">Día del Mes</th>
+                            <th class="p-3 font-bold text-cyan-400">Stock Real (Usuario - Stock Fin)</th>
                             <th class="p-3">Stock Materias Primas (m³)</th>
                             <th class="p-3">Stock Productos AET (m³)</th>
                             <th class="p-3">Stock Construcción (m³)</th>
@@ -136,13 +137,16 @@
             return ahora.toLocaleDateString('es-AR', opciones).split('/').reverse().join('-');
         }
 
-        function calcularStockTotalSegmento(cat) {
-            if (!inventoryData[cat]) return 1420;
+        // Función que calcula la suma real y actualizada del Stock Fin de cada segmento del usuario
+        function calcularStockRealSegmento(cat) {
+            if (!inventoryData[cat]) return 0;
             let total = 0;
             for (let item in inventoryData[cat]) {
-                total += Number(inventoryData[cat][item].stock_final || 0);
+                let rec = inventoryData[cat][item];
+                let sFinal = Number(rec.stock_inicial || 0) + Number(rec.entradas || 0) - Number(rec.salidas || 0);
+                total += sFinal;
             }
-            return total > 0 ? total : 1420;
+            return total;
         }
 
         function renderMatriz31Dias() {
@@ -153,21 +157,24 @@
             const pAET = Number(document.getElementById('precioAET').value) || 0;
             const pCONS = Number(document.getElementById('precioCONS').value) || 0;
 
-            const baseMP = calcularStockTotalSegmento('materias_primas');
-            const baseAET = calcularStockTotalSegmento('productos_aet');
-            const baseCONS = calcularStockTotalSegmento('construccion');
+            // Obtenemos el stock real actual de usuario para cada segmento
+            const realMP = calcularStockRealSegmento('materias_primas');
+            const realAET = calcularStockRealSegmento('productos_aet');
+            const realCONS = calcularStockRealSegmento('construccion');
+            const stockRealTotalUsuario = realMP + realAET + realCONS;
 
             for (let dia = 1; dia <= 31; dia++) {
                 let factorVaria = 1 + (Math.sin(dia) * 0.03); 
-                let stockMP = Math.round(baseMP * factorVaria);
-                let stockAET = Math.round(baseAET * (1 - (dia * 0.002)));
-                let stockCONS = Math.round(baseCONS * factorVaria);
+                let stockMP = Math.round(realMP * factorVaria);
+                let stockAET = Math.round(realAET * (1 - (dia * 0.002)));
+                let stockCONS = Math.round(realCONS * factorVaria);
 
                 let valorTotalDia = (stockMP * pMP) + (stockAET * pAET) + (stockCONS * pCONS);
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-700/30 transition">
                         <td class="p-3 font-semibold text-white">Día ${dia}</td>
+                        <td class="p-3 font-bold text-cyan-400 bg-cyan-950/20">${stockRealTotalUsuario.toLocaleString()} m³ (Sincronizado)</td>
                         <td class="p-3 text-emerald-400">${stockMP.toLocaleString()} m³</td>
                         <td class="p-3 text-emerald-400">${stockAET.toLocaleString()} m³</td>
                         <td class="p-3 text-emerald-400">${stockCONS.toLocaleString()} m³</td>
@@ -181,20 +188,22 @@
             let pMP = Number(document.getElementById('precioMP').value) || 0;
             let pAET = Number(document.getElementById('precioAET').value) || 0;
             let pCONS = Number(document.getElementById('precioCONS').value) || 0;
-            let baseMP = calcularStockTotalSegmento('materias_primas');
-            let baseAET = calcularStockTotalSegmento('productos_aet');
-            let baseCONS = calcularStockTotalSegmento('construccion');
+            let realMP = calcularStockRealSegmento('materias_primas');
+            let realAET = calcularStockRealSegmento('productos_aet');
+            let realCONS = calcularStockRealSegmento('construccion');
+            let stockRealTotalUsuario = realMP + realAET + realCONS;
 
             let matrizExport = [];
             for (let dia = 1; dia <= 31; dia++) {
                 let factorVaria = 1 + (Math.sin(dia) * 0.03);
-                let stockMP = Math.round(baseMP * factorVaria);
-                let stockAET = Math.round(baseAET * (1 - (dia * 0.002)));
-                let stockCONS = Math.round(baseCONS * factorVaria);
+                let stockMP = Math.round(realMP * factorVaria);
+                let stockAET = Math.round(realAET * (1 - (dia * 0.002)));
+                let stockCONS = Math.round(realCONS * factorVaria);
                 let valorTotalDia = (stockMP * pMP) + (stockAET * pAET) + (stockCONS * pCONS);
 
                 matrizExport.push({
                     "Día del Mes": `Día ${dia}`,
+                    "Stock Real Actual (Usuario m³)": stockRealTotalUsuario,
                     "Stock Materias Primas (m³)": stockMP,
                     "Stock Productos AET (m³)": stockAET,
                     "Stock Construcción (m³)": stockCONS,
