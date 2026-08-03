@@ -26,13 +26,13 @@
             <i class="fa-solid fa-mountain text-amber-500 text-2xl"></i>
             <div>
                 <h1 class="text-lg font-bold tracking-wider text-white">GRAVAFILT S.A.</h1>
-                <p class="text-xs text-slate-400">Control Operativo e Histórico de Acopios</p>
+                <p class="text-xs text-slate-400">Control Operativo e Histórico de Acopios (Hora Arg.)</p>
             </div>
         </div>
         <div class="flex items-center space-x-4">
             <span id="userBadge" class="bg-slate-700 text-amber-400 text-xs px-3 py-1 rounded-full font-medium"></span>
             <button id="adminLink" onclick="window.location.href='admin.html'" class="hidden bg-amber-600 hover:bg-amber-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-gauge-high mr-1"></i> Panel Admin & Historial</button>
-            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Excel (Fecha/Hora)</button>
+            <button onclick="exportarRegistrosExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Excel (Hora Arg.)</button>
             <button onclick="sessionStorage.clear(); window.location.href='login.html';" class="bg-rose-600 hover:bg-rose-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition"><i class="fa-solid fa-right-from-bracket"></i></button>
         </div>
     </header>
@@ -72,7 +72,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 id="currentCategoryTitle" class="text-xl font-bold text-white">Micrositio: Materias Primas</h2>
-                    <p class="text-xs text-slate-400 mt-1">Control sincronizado con trazabilidad temporal y tickets acumulables</p>
+                    <p class="text-xs text-slate-400 mt-1">Control sincronizado con trazabilidad temporal de Argentina y tickets acumulables</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded">Sectores: Zona Costa, Silos, Zona Planta</span>
@@ -106,7 +106,7 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
                 <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-2"></i>Módulo Gemini IA (Curva Granulométrica)</h3>
-                <p class="text-xs text-slate-400 mb-4">Análisis de tamices normativizados con registro temporal.</p>
+                <p class="text-xs text-slate-400 mb-4">Análisis de tamices con registro temporal argentino.</p>
                 
                 <div class="grid grid-cols-2 gap-4">
                     <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-amber-500 transition cursor-pointer" onclick="document.getElementById('aiFileGallery').click()">
@@ -135,7 +135,7 @@
 
     <!-- Pie de Página -->
     <footer class="bg-slate-800 border-t border-slate-700 py-4 px-6 text-center text-xs text-slate-400">
-        GRAVAFILT S.A. &copy; 2026 - Módulo Operativo con Trazabilidad Temporal e Histórica.
+        GRAVAFILT S.A. &copy; 2026 - Módulo Operativo (Hora Argentina).
     </footer>
 
     <!-- Lógica de la Aplicación -->
@@ -164,8 +164,22 @@
         let inventoryData = JSON.parse(localStorage.getItem("gravafilt_inventory")) || initInventory();
         let historyLogs = JSON.parse(localStorage.getItem("gravafilt_history_logs")) || [];
 
+        // Función estricta para obtener fecha y hora actual en Argentina
+        function obtenerFechaHoraArg() {
+            const ahora = new Date();
+            const opcionesFecha = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' };
+            const opcionesHora = { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
+            
+            const fechaStr = ahora.toLocaleDateString('es-AR', opcionesFecha).split('/').reverse().join('-'); // YYYY-MM-DD
+            const horaStr = ahora.toLocaleTimeString('es-AR', opcionesHora);
+            const completoStr = `${ahora.toLocaleDateString('es-AR')} ${horaStr}`;
+
+            return { fecha: fechaStr, hora: horaStr, completo: completoStr };
+        }
+
         function initInventory() {
             let data = {};
+            const dtArg = obtenerFechaHoraArg();
             for (let cat in CATALOGOS) {
                 data[cat] = {};
                 CATALOGOS[cat].forEach((item, idx) => {
@@ -176,7 +190,7 @@
                         salidas: 0,
                         stock_final: 0,
                         area_m2: 35.5,
-                        ultima_actualizacion: new Date().toLocaleString()
+                        ultima_actualizacion: dtArg.completo
                     };
                 });
             }
@@ -184,12 +198,12 @@
         }
 
         function registrarLogHistorico(cat, item, accion, detalle) {
-            const timestamp = new Date();
+            const dtArg = obtenerFechaHoraArg();
             const logEntry = {
                 id_unico: 'LOG-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-                fecha: timestamp.toISOString().split('T')[0],
-                hora: timestamp.toLocaleTimeString(),
-                timestamp_completo: timestamp.toLocaleString(),
+                fecha: dtArg.fecha,
+                hora: dtArg.hora,
+                timestamp_completo: dtArg.completo,
                 usuario: session.name,
                 categoria: cat,
                 material: item,
@@ -223,7 +237,8 @@
 
             CATALOGOS[currentTab].forEach(item => {
                 if (!inventoryData[currentTab][item]) {
-                    inventoryData[currentTab][item] = { sector: "Silos", stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5, ultima_actualizacion: new Date().toLocaleString() };
+                    const dtArg = obtenerFechaHoraArg();
+                    inventoryData[currentTab][item] = { sector: "Silos", stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5, ultima_actualizacion: dtArg.completo };
                 }
                 const record = inventoryData[currentTab][item];
                 record.stock_final = Number(record.stock_inicial) + Number(record.entradas) - Number(record.salidas);
@@ -231,7 +246,7 @@
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-700/30 transition">
-                        <td class="p-3 font-medium text-white">${item}<br><span class="text-[10px] text-slate-500">Act: ${record.ultima_actualizacion}</span></td>
+                        <td class="p-3 font-medium text-white">${item}<br><span class="text-[10px] text-slate-500">Act (Arg): ${record.ultima_actualizacion}</span></td>
                         <td class="p-3">
                             <select onchange="actualizarSector('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-amber-400 rounded px-2 py-1 focus:outline-none focus:border-amber-500">
                                 <option value="Zona Costa" ${record.sector === 'Zona Costa' ? 'selected' : ''}>Zona Costa</option>
@@ -283,8 +298,9 @@
         }
 
         function actualizarSector(cat, item, nuevoSector) {
+            const dtArg = obtenerFechaHoraArg();
             inventoryData[cat][item].sector = nuevoSector;
-            inventoryData[cat][item].ultima_actualizacion = new Date().toLocaleString();
+            inventoryData[cat][item].ultima_actualizacion = dtArg.completo;
             registrarLogHistorico(cat, item, "CAMBIO SECTOR", `Sector modificado a ${nuevoSector}`);
             localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
         }
@@ -293,8 +309,9 @@
             let val = Number(nuevoStock);
             if (!isNaN(val)) {
                 let rec = inventoryData[cat][item];
+                const dtArg = obtenerFechaHoraArg();
                 rec.stock_inicial = val;
-                rec.ultima_actualizacion = new Date().toLocaleString();
+                rec.ultima_actualizacion = dtArg.completo;
                 registrarLogHistorico(cat, item, "STOCK INICIAL", `Nuevo stock inicial: ${val} m³`);
                 renderTable();
             }
@@ -304,8 +321,9 @@
             let val = Number(nuevasEntradas);
             if (!isNaN(val)) {
                 let rec = inventoryData[cat][item];
+                const dtArg = obtenerFechaHoraArg();
                 rec.entradas = val;
-                rec.ultima_actualizacion = new Date().toLocaleString();
+                rec.ultima_actualizacion = dtArg.completo;
                 registrarLogHistorico(cat, item, "ENTRADAS", `Entradas ajustadas a: ${val} m³`);
                 renderTable();
             }
@@ -317,8 +335,9 @@
                 let cant = parseFloat(ticketVal.replace(',', '.'));
                 if (!isNaN(cant) && cant >= 0.5 && cant <= 30) {
                     let rec = inventoryData[cat][item];
+                    const dtArg = obtenerFechaHoraArg();
                     rec.salidas = Number(rec.salidas) + cant;
-                    rec.ultima_actualizacion = new Date().toLocaleString();
+                    rec.ultima_actualizacion = dtArg.completo;
                     registrarLogHistorico(cat, item, "TICKET VENTA", `Ticket acumulado por -${cant} m³ (Salidas totales: ${rec.salidas} m³)`);
                     renderTable();
                     alert(`Ticket registrado con éxito: -${cant} m³ acumulados.`);
@@ -338,8 +357,9 @@
             }
 
             if (confirm(`¿Confirma blanquear y reiniciar a 0 las salidas acumuladas de "${item}"? (Valor actual a descartar: ${salidasAnteriores} m³)`)) {
+                const dtArg = obtenerFechaHoraArg();
                 rec.salidas = 0;
-                rec.ultima_actualizacion = new Date().toLocaleString();
+                rec.ultima_actualizacion = dtArg.completo;
                 registrarLogHistorico(cat, item, "RESET SALIDAS", `Corrección de arrastre: Salidas reseteadas desde ${salidasAnteriores} m³ a 0 m³`);
                 renderTable();
                 alert(`Se han reseteado las salidas de "${item}" a 0 m³ correctamente.`);
@@ -350,8 +370,9 @@
             if (input.files && input.files[0]) {
                 let rec = inventoryData[cat][item];
                 let volumenCubicaje = Math.floor(Math.random() * 200) + 100;
+                const dtArg = obtenerFechaHoraArg();
                 rec.entradas = Number(rec.entradas) + volumenCubicaje;
-                rec.ultima_actualizacion = new Date().toLocaleString();
+                rec.ultima_actualizacion = dtArg.completo;
                 registrarLogHistorico(cat, item, "SR MEASURE IA", `Captura analizada: +${volumenCubicaje} m³ detectados`);
                 renderTable();
                 alert(`¡SR MEASURE procesado! +${volumenCubicaje} m³ añadidos a entradas.`);
@@ -362,9 +383,10 @@
             if (input.files && input.files[0]) {
                 const box = document.getElementById('aiResultBox');
                 box.classList.remove('hidden');
+                const dtArg = obtenerFechaHoraArg();
                 box.innerHTML = `
                     <p class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Análisis Granulométrico OK:</p>
-                    <p><strong>Fecha/Hora:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Fecha/Hora (Arg):</strong> ${dtArg.completo}</p>
                     <p><strong>Tamices:</strong> 1"(100%) | 3/8"(57.1%) | N°4(38.2%)</p>
                 `;
                 registrarLogHistorico(currentTab, "ANALISIS IA", "GRANULOMETRIA", "Imagen analizada correctamente");
@@ -378,7 +400,7 @@
             }
             let dataExport = historyLogs.map(l => ({
                 "ID Registro": l.id_unico,
-                "Fecha y Hora Evento": l.timestamp_completo || (l.fecha + ' ' + l.hora),
+                "Fecha y Hora (Arg)": l.timestamp_completo || (l.fecha + ' ' + l.hora),
                 "Usuario": l.usuario,
                 "Micrositio / Segmento": l.categoria,
                 "Material": l.material,
@@ -389,7 +411,8 @@
             const ws = XLSX.utils.json_to_sheet(dataExport);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Trazabilidad_Operativa");
-            XLSX.writeFile(wb, `Gravafilt_Trazabilidad_Operativa_${new Date().toISOString().split('T')[0]}.xlsx`);
+            const dtArg = obtenerFechaHoraArg();
+            XLSX.writeFile(wb, `Gravafilt_Trazabilidad_Operativa_Arg_${dtArg.fecha}.xlsx`);
         }
 
         const ctx = document.getElementById('evolutionChart').getContext('2d');
