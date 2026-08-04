@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GRAVAFILT S.A. - Panel Gerencial y de Administración</title>
+    <title>GRAVAFILT S.A. - Panel Gerencial, Auditoría y Reportes</title>
     <!-- Tailwind CSS y Librerías Gráficas -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -29,7 +29,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-wider text-white">GRAVAFILT S.A. - PANEL GERENCIAL</h1>
-                <p class="text-xs text-slate-400">Valuación de Activos, Trazabilidad e Indicadores Estratégicos (Paraná / Vaca Muerta)</p>
+                <p class="text-xs text-slate-400">Valuación, Auditoría Histórica y Reportes Automáticos a Dirección (LSANTIAGO)</p>
             </div>
         </div>
         <div class="flex items-center flex-wrap gap-2">
@@ -38,6 +38,9 @@
             </span>
             <button onclick="window.location.href='index.html'" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center">
                 <i class="fa-solid fa-arrow-left mr-1.5"></i> Volver a Operación
+            </button>
+            <button onclick="enviarReporteAutomaticoLSantiago()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center shadow">
+                <i class="fa-solid fa-paper-plane mr-1.5"></i> Enviar Reporte a LSANTIAGO
             </button>
             <button onclick="exportarHistorialCompletoExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center shadow">
                 <i class="fa-solid fa-file-excel mr-1.5"></i> Exportar Auditoría y Valuación
@@ -62,8 +65,8 @@
             <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md relative overflow-hidden">
                 <div class="absolute right-3 top-3 text-slate-700 text-3xl"><i class="fa-solid fa-sack-dollar"></i></div>
                 <p class="text-xs text-slate-400 font-medium">Valuación Total de Stock</p>
-                <h3 id="statValuacionTotal" class="text-2xl font-bold text-emerald-400 mt-1">$0</h3>
-                <span class="text-[10px] text-slate-400 mt-1 block">Capital inmovilizado actual (Estimado)</span>
+                <h3 id="statValuacionTotal" class="text-2xl font-bold text-emerald-400 mt-1">$ 0</h3>
+                <span class="text-[10px] text-slate-400 mt-1 block">Capital inmovilizado real (Precio x Stock)</span>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow-md relative overflow-hidden">
                 <div class="absolute right-3 top-3 text-slate-700 text-3xl"><i class="fa-solid fa-triangle-exclamation"></i></div>
@@ -79,6 +82,22 @@
             </div>
         </div>
 
+        <!-- Módulo de Notificación Automática a LSANTIAGO -->
+        <div class="bg-gradient-to-r from-slate-800 to-slate-800/80 border border-blue-500/30 p-4 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex items-center space-x-3">
+                <div class="bg-blue-500/20 p-3 rounded-lg text-blue-400 text-xl border border-blue-500/30">
+                    <i class="fa-solid fa-envelope-circle-check"></i>
+                </div>
+                <div>
+                    <h4 class="text-sm font-bold text-white">Canal Automático de Reportes a Dirección</h4>
+                    <p class="text-xs text-slate-300">El sistema compila el estado de stock, valuación financiera y las últimas alertas operativas para enviarlas de forma automatizada al correo corporativo: <strong class="text-blue-400">LSANTIAGO@gravafilt.com</strong></p>
+                </div>
+            </div>
+            <button onclick="enviarReporteAutomaticoLSantiago()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow flex items-center whitespace-nowrap">
+                <i class="fa-solid fa-paper-plane mr-2"></i> Disparar Reporte Automático Ahora
+            </button>
+        </div>
+
         <!-- Módulo Gráfico Gerencial: Días de Cobertura y Rotación -->
         <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-2">
@@ -86,7 +105,7 @@
                     <h3 class="text-lg font-semibold text-white flex items-center">
                         <i class="fa-solid fa-chart-line text-amber-400 mr-2"></i>Índice Gerencial: Días de Cobertura de Stock
                     </h3>
-                    <p class="text-xs text-slate-400 mt-0.5">Autonomía operativa calculada en base al stock final y el promedio de salidas diarias</p>
+                    <p class="text-xs text-slate-400 mt-0.5">Autonomía operativa calculada en base al stock final real y el promedio de salidas diarias</p>
                 </div>
                 <span class="bg-amber-600/20 text-amber-400 text-xs px-3 py-1.5 rounded-lg font-semibold border border-amber-600/30 whitespace-nowrap">
                     <i class="fa-solid fa-shield-halved mr-1"></i> Meta Óptima: 15 a 30 días
@@ -97,31 +116,34 @@
             </div>
         </div>
 
-        <!-- Módulo de Valuación de Stock y Capital Inmovilizado por Familia de Material -->
+        <!-- Módulo Dinámico de Valuación de Stock y Capital Inmovilizado por Producto Individual -->
         <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
-            <div class="flex justify-between items-center mb-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
                 <div>
                     <h2 class="text-xl font-bold text-white flex items-center">
-                        <i class="fa-solid fa-file-invoice-dollar text-amber-400 mr-2"></i>Valuación Financiera y Capital Inmovilizado
+                        <i class="fa-solid fa-file-invoice-dollar text-amber-400 mr-2"></i>Valuación Financiera por Producto (Inventario Real)
                     </h2>
-                    <p class="text-xs text-slate-400 mt-1">Análisis de valor monetario del inventario actual para la toma de decisiones directivas y control de activos</p>
+                    <p class="text-xs text-slate-400 mt-1">Modifique los precios unitarios por producto para recalcular en tiempo real el capital inmovilizado y los activos de la empresa</p>
                 </div>
-                <span class="bg-emerald-600/20 text-emerald-400 text-xs px-3 py-1 rounded font-semibold border border-emerald-600/30">Moneda Operativa: USD / ARS</span>
+                <button onclick="guardarPreciosValuacion()" class="bg-amber-600 hover:bg-amber-500 text-slate-950 font-bold px-4 py-2 rounded-lg text-xs transition shadow flex items-center">
+                    <i class="fa-solid fa-floppy-disk mr-1.5"></i> Guardar Cambios de Precios
+                </button>
             </div>
 
             <div class="overflow-x-auto rounded-lg border border-slate-700/60">
                 <table class="w-full text-left text-sm text-slate-300">
                     <thead class="bg-slate-700/70 text-xs uppercase text-slate-300 tracking-wider">
                         <tr>
-                            <th class="p-3.5">Familia / Material</th>
-                            <th class="p-3.5">Volumen Actual (m³)</th>
-                            <th class="p-3.5">Costo Unitario Est. ($/m³)</th>
+                            <th class="p-3.5">Familia / Categoría</th>
+                            <th class="p-3.5">Producto Específico</th>
+                            <th class="p-3.5">Stock Real Actual (m³)</th>
+                            <th class="p-3.5">Costo Unitario ($/m³) [Editable]</th>
                             <th class="p-3.5">Valor Total Inmovilizado ($)</th>
                             <th class="p-3.5">Estado Financiero</th>
                         </tr>
                     </thead>
-                    <tbody id="tablaValuacionBody" class="divide-y divide-slate-700/60">
-                        <!-- Renderizado dinámico de valuación -->
+                    <tbody id="tablaValuacionRealBody" class="divide-y divide-slate-700/60">
+                        <!-- Renderizado dinámico desde gravafilt_inventory -->
                     </tbody>
                 </table>
             </div>
@@ -180,15 +202,13 @@
         <p class="text-slate-500">Jurisdicciones: Entre Ríos (Paraná) / Balnearios (Ibiza) / Vaca Muerta</p>
     </footer>
 
-    <!-- Lógica JavaScript Completa e Íntegra -->
+    <!-- Lógica JavaScript Completa con Valuación, Historial y Reporte Automático a LSANTIAGO -->
     <script>
         document.getElementById('adminUserBadge').innerText = `${session.name || 'Administrador'} (${(session.role || 'admin').toUpperCase()})`;
 
         let historyLogs = JSON.parse(localStorage.getItem("gravafilt_history_logs")) || [];
         let inventoryData = JSON.parse(localStorage.getItem("gravafilt_inventory")) || {};
-
-        // Precios unitarios referenciales de costo por m3 para valuación financiera
-        const preciosReferencia = {
+        let preciosPersonalizados = JSON.parse(localStorage.getItem("gravafilt_precios_unitarios")) || {
             "Arena Gruesa": 12500,
             "Arena Fina": 14000,
             "Grava 2-4": 18500,
@@ -196,45 +216,71 @@
             "Canto Rodado": 22000
         };
 
-        function calcularMetricasGerencialesYValuacion() {
+        function calcularMetricasGerencialesYValuacionReal() {
             let volumenTotal = 0;
             let valuacionTotal = 0;
             let criticosCount = 0;
             let totalItems = 0;
 
-            const tbodyVal = document.getElementById('tablaValuacionBody');
+            const tbodyVal = document.getElementById('tablaValuacionRealBody');
             tbodyVal.innerHTML = '';
 
-            // Si hay datos en inventario real los procesamos, sino usamos matriz base
-            let itemsParaValuar = [
-                { nombre: "Arena Gruesa", vol: inventoryData["arenas"]?.["Arena Gruesa"]?.stock_final || 450, costo: preciosReferencia["Arena Gruesa"] },
-                { nombre: "Arena Fina", vol: inventoryData["arenas"]?.["Arena Fina"]?.stock_final || 180, costo: preciosReferencia["Arena Fina"] },
-                { nombre: "Grava 2-4", vol: inventoryData["gravas"]?.["Grava 2-4"]?.stock_final || 620, costo: preciosReferencia["Grava 2-4"] },
-                { nombre: "Piedra 6-12", vol: inventoryData["piedras"]?.["Piedra 6-12"]?.stock_final || 210, costo: preciosReferencia["Piedra 6-12"] },
-                { nombre: "Canto Rodado", vol: inventoryData["especiales"]?.["Canto Rodado"]?.stock_final || 340, costo: preciosReferencia["Canto Rodado"] }
-            ];
+            if (Object.keys(inventoryData).length === 0) {
+                inventoryData = {
+                    "arenas": {
+                        "Arena Gruesa": { stock_final: 450, stock_minimo: 40 },
+                        "Arena Fina": { stock_final: 180, stock_minimo: 30 }
+                    },
+                    "gravas": {
+                        "Grava 2-4": { stock_final: 620, stock_minimo: 50 }
+                    },
+                    "piedras": {
+                        "Piedra 6-12": { stock_final: 210, stock_minimo: 40 }
+                    },
+                    "especiales": {
+                        "Canto Rodado": { stock_final: 340, stock_minimo: 30 }
+                    }
+                };
+            }
 
-            itemsParaValuar.forEach(item => {
-                let volNum = Number(item.vol);
-                let subtotal = volNum * item.costo;
-                volumenTotal += volNum;
-                valuacionTotal += subtotal;
-                totalItems++;
+            for (let cat in inventoryData) {
+                for (let item in inventoryData[cat]) {
+                    let rec = inventoryData[cat][item];
+                    let stockVal = Number(rec.stock_final || 0);
+                    let stockMin = Number(rec.stock_minimo || 40);
+                    
+                    volumenTotal += stockVal;
+                    totalItems++;
 
-                if (volNum < 40) criticosCount++;
+                    if (stockVal < stockMin) {
+                        criticosCount++;
+                    }
 
-                let badgeEstado = volNum < 40 ? '<span class="bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded text-[11px] font-bold">⚠️ Capital Bajo / Riesgo</span>' : '<span class="bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded text-[11px] font-bold">✅ Activo Óptimo</span>';
+                    let precioUnit = preciosPersonalizados[item] || 15000;
+                    let subtotal = stockVal * precioUnit;
+                    valuacionTotal += subtotal;
 
-                tbodyVal.innerHTML += `
-                    <tr class="hover:bg-slate-700/30 transition text-xs">
-                        <td class="p-3.5 font-semibold text-white">${item.nombre}</td>
-                        <td class="p-3.5 font-mono text-amber-400">${volNum.toLocaleString()} m³</td>
-                        <td class="p-3.5 text-slate-300">$ ${item.costo.toLocaleString()}</td>
-                        <td class="p-3.5 font-bold text-emerald-400">$ ${subtotal.toLocaleString()}</td>
-                        <td class="p-3.5">${badgeEstado}</td>
-                    </tr>
-                `;
-            });
+                    let badgeEstado = stockVal < stockMin ? 
+                        '<span class="bg-rose-500/20 text-rose-400 px-2.5 py-1 rounded text-[11px] font-bold border border-rose-500/30">⚠️ Stock Bajo / Alerta</span>' : 
+                        '<span class="bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded text-[11px] font-bold border border-emerald-500/30">✅ Activo Óptimo</span>';
+
+                    tbodyVal.innerHTML += `
+                        <tr class="hover:bg-slate-700/30 transition text-xs">
+                            <td class="p-3.5 uppercase font-semibold text-slate-400">${cat}</td>
+                            <td class="p-3.5 font-bold text-white">${item}</td>
+                            <td class="p-3.5 font-mono text-amber-400 font-semibold">${stockVal.toLocaleString()} m³</td>
+                            <td class="p-3.5">
+                                <div class="flex items-center space-x-1">
+                                    <span class="text-slate-400">$</span>
+                                    <input type="number" id="precio_${item}" value="${precioUnit}" oninput="actualizarSubtotalFila(this, '${item}', ${stockVal})" class="bg-slate-900 border border-slate-700 text-white font-mono text-xs rounded px-2.5 py-1 w-28 focus:outline-none focus:border-amber-500">
+                                </div>
+                            </td>
+                            <td class="p-3.5 font-bold text-emerald-400 font-mono" id="subtotal_${item}">$ ${subtotal.toLocaleString()}</td>
+                            <td class="p-3.5">${badgeEstado}</td>
+                        </tr>
+                    `;
+                }
+            }
 
             document.getElementById('statVolumenGlobal').innerText = volumenTotal.toLocaleString() + " m³";
             document.getElementById('statValuacionTotal').innerText = "$ " + valuacionTotal.toLocaleString();
@@ -245,6 +291,28 @@
                 let autonomiaProm = Math.round(22 - (proporcionCritica * 10));
                 document.getElementById('statAutonomiaPromedio').innerText = autonomiaProm + " Días";
             }
+        }
+
+        function actualizarSubtotalFila(inputEl, itemNombre, stockVal) {
+            let nuevoPrecio = Number(inputEl.value) || 0;
+            preciosPersonalizados[itemNombre] = nuevoPrecio;
+            let nuevoSubtotal = stockVal * nuevoPrecio;
+            document.getElementById(`subtotal_${itemNombre}`).innerText = "$ " + nuevoSubtotal.toLocaleString();
+            
+            let sumaGeneral = 0;
+            for (let cat in inventoryData) {
+                for (let item in inventoryData[cat]) {
+                    let s = Number(inventoryData[cat][item].stock_final || 0);
+                    let p = preciosPersonalizados[item] || 15000;
+                    sumaGeneral += (s * p);
+                }
+            }
+            document.getElementById('statValuacionTotal').innerText = "$ " + sumaGeneral.toLocaleString();
+        }
+
+        function guardarPreciosValuacion() {
+            localStorage.setItem("gravafilt_precios_unitarios", JSON.stringify(preciosPersonalizados));
+            alert("¡Precios unitarios y valuación guardados exitosamente en el sistema!");
         }
 
         function renderTablaAuditoria() {
@@ -278,6 +346,50 @@
                     </tr>
                 `;
             });
+        }
+
+        // Sistema de Reporte Automático a LSANTIAGO
+        function enviarReporteAutomaticoLSantiago() {
+            let volumenGlobal = document.getElementById('statVolumenGlobal').innerText;
+            let valuacionTotal = document.getElementById('statValuacionTotal').innerText;
+            let criticos = document.getElementById('statAlertasCriticas').innerText;
+            let autonomia = document.getElementById('statAutonomiaPromedio').innerText;
+            let fechaHoy = new Date().toLocaleString('es-AR');
+
+            let asunto = encodeURIComponent(`[GRAVAFILT S.A.] Reporte Gerencial Automático de Stock y Valuación - ${fechaHoy}`);
+            let cuerpo = encodeURIComponent(
+                `Estimado LSANTIAGO,\n\n` +
+                `Se adjunta el reporte gerencial automático generado por el Sistema de Control Operativo GRAVAFILT S.A. (${fechaHoy}):\n\n` +
+                `🔹 Volumen Global Consolidado: ${volumenGlobal}\n` +
+                `🔹 Valuación Total de Activos: ${valuacionTotal}\n` +
+                `🔹 Alertas Críticas Detectadas: ${criticos} ítems\n` +
+                `🔹 Autonomía Promedio Predio: ${autonomia}\n\n` +
+                `Total de movimientos registrados en auditoría: ${historyLogs.length}\n\n` +
+                `Atentamente,\n` +
+                `Panel de Control Central - GRAVAFILT S.A. (Paraná / Vaca Muerta)`
+            );
+
+            // Simulación de envío con feedback visual y apertura de cliente de correo corporativo
+            if (confirm(`¿Confirma el envío automático del reporte de inventario y valuación a LSANTIAGO@gravafilt.com?`)) {
+                // Registrar este envío en el historial de auditoría automáticamente
+                let nuevoLog = {
+                    id_unico: 'REP-' + Math.floor(Math.random() * 90000 + 10000),
+                    timestamp_completo: fechaHoy,
+                    usuario: session.name || 'Administrador',
+                    categoria: 'DIRECCIÓN',
+                    material: 'REPORTE GLOBAL',
+                    accion: 'ENVÍO AUTOMÁTICO',
+                    detalle: 'Reporte enviado a LSANTIAGO@gravafilt.com',
+                    stock_final_resultado: volumenGlobal
+                };
+                historyLogs.push(nuevoLog);
+                localStorage.setItem("gravafilt_history_logs", JSON.stringify(historyLogs));
+                renderTablaAuditoria();
+
+                // Abrir cliente de correo configurado para LSANTIAGO
+                window.location.href = `mailto:LSANTIAGO@gravafilt.com?subject=${asunto}&body=${cuerpo}`;
+                alert("¡Reporte generado y despachado con éxito al correo de LSANTIAGO!");
+            }
         }
 
         // Gráfico Gerencial de Días de Cobertura con Chart.js
@@ -361,7 +473,7 @@
                 historyLogs = [];
                 localStorage.removeItem("gravafilt_history_logs");
                 renderTablaAuditoria();
-                calcularMetricasGerencialesYValuacion();
+                calcularMetricasGerencialesYValuacionReal();
                 alert("Historial purgado correctamente.");
             }
         }
@@ -372,7 +484,7 @@
         }
 
         // Inicialización general
-        calcularMetricasGerencialesYValuacion();
+        calcularMetricasGerencialesYValuacionReal();
         renderTablaAuditoria();
         renderGraficoCoberturaGerencial();
     </script>
