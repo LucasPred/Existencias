@@ -1,14 +1,10 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
+<!DOCTYPE html><html lang="es"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GRAVAFILT S.A. - Panel de Administración y Trazabilidad Histórica</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"></head><body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
 
     <!-- Verificación de Seguridad Admin -->
     <script>
@@ -24,7 +20,7 @@
             <i class="fa-solid fa-shield-halved text-amber-500 text-2xl"></i>
             <div>
                 <h1 class="text-lg font-bold tracking-wider text-white">GRAVAFILT S.A. - Auditoría y Trazabilidad</h1>
-                <p class="text-xs text-slate-400">Panel Histórico y Valorización Contable (Hora Argentina)</p>
+                <p class="text-xs text-slate-400">Panel Histórico, Logs en Vivo y Valorización Contable (Hora Argentina)</p>
             </div>
         </div>
         <div>
@@ -34,12 +30,12 @@
 
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
 
-        <!-- Matriz de Gestión de Precios y Valorización Contable (Base 31 Días + Stock Real Vinculado) -->
+        <!-- Matriz de Gestión de Precios y Valorización Contable (Base 31 Días) -->
         <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl space-y-4">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-slate-700 pb-4">
                 <div>
-                    <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-calculator text-amber-400 mr-2"></i>Matriz de Valorización Contable (Sincronizada con Stock Real y 31 Días)</h2>
-                    <p class="text-xs text-slate-400 mt-1">Columna de stock real conectada en tiempo real al inventario de usuario con proyección a 31 días.</p>
+                    <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-calculator text-amber-400 mr-2"></i>Matriz de Valorización Contable (Base 31 Días)</h2>
+                    <p class="text-xs text-slate-400 mt-1">Cálculo de existencias por segmento con precios unitarios para la Dirección.</p>
                 </div>
                 <button onclick="exportarMatriz31DiasExcel()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded text-xs font-semibold transition shadow"><i class="fa-solid fa-file-excel mr-1"></i> Descargar Reporte Dirección (31 Días)</button>
             </div>
@@ -60,13 +56,12 @@
                 </div>
             </div>
 
-            <!-- Tabla Matriz 31 Días con Columna de Stock Real Actualizado -->
-            <div class="overflow-x-auto max-h-96">
+            <!-- Tabla Matriz 31 Días -->
+            <div class="overflow-x-auto max-h-64">
                 <table class="w-full text-left text-xs text-slate-300">
                     <thead class="bg-slate-700/50 uppercase text-slate-400 sticky top-0">
                         <tr>
                             <th class="p-3">Día del Mes</th>
-                            <th class="p-3 font-bold text-cyan-400">Stock Real (Usuario - Stock Fin)</th>
                             <th class="p-3">Stock Materias Primas (m³)</th>
                             <th class="p-3">Stock Productos AET (m³)</th>
                             <th class="p-3">Stock Construcción (m³)</th>
@@ -74,6 +69,32 @@
                         </tr>
                     </thead>
                     <tbody id="matriz31DiasBody" class="divide-y divide-slate-700"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Visualizador en Vivo de Logs y Trazabilidad -->
+        <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl space-y-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <h2 class="text-lg font-bold text-white"><i class="fa-solid fa-list-check text-blue-400 mr-2"></i>Auditoría de Logs en Vivo</h2>
+                <div class="w-full md:w-72">
+                    <input type="text" id="buscadorLogs" placeholder="Buscar por material, usuario o acción..." onkeyup="renderizarTablaLogsVivo()" class="bg-slate-900 border border-slate-700 text-xs text-white rounded p-2 w-full focus:outline-none focus:border-amber-500">
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto max-h-72">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-700/50 uppercase text-slate-400 sticky top-0">
+                        <tr>
+                            <th class="p-3">Fecha / Hora (Arg)</th>
+                            <th class="p-3">Usuario</th>
+                            <th class="p-3">Segmento</th>
+                            <th class="p-3">Material</th>
+                            <th class="p-3">Acción</th>
+                            <th class="p-3">Detalle / Motivo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsVivoBody" class="divide-y divide-slate-700"></tbody>
                 </table>
             </div>
         </section>
@@ -99,185 +120,155 @@
             </div>
         </section>
 
-        <!-- Tabla de Registros en Tiempo Real con Hora Argentina -->
-        <section class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
-            <h3 class="text-md font-bold text-white mb-4"><i class="fa-solid fa-list-check text-amber-400 mr-2"></i>Auditoría de Movimientos y Stock (Hora Argentina)</h3>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left text-xs text-slate-300">
-                    <thead class="bg-slate-700/50 uppercase text-slate-400">
-                        <tr>
-                            <th class="p-3">ID Log</th>
-                            <th class="p-3">Fecha y Hora (Arg)</th>
-                            <th class="p-3">Usuario</th>
-                            <th class="p-3">Micrositio / Categoría</th>
-                            <th class="p-3">Material</th>
-                            <th class="p-3">Acción Realizada</th>
-                            <th class="p-3">Detalle / Stock Resultante</th>
-                        </tr>
-                    </thead>
-                    <tbody id="logsTableBody" class="divide-y divide-slate-700">
-                        <!-- Creado por JS -->
-                    </tbody>
-                </table>
-            </div>
-        </section>
     </main>
 
     <footer class="bg-slate-800 border-t border-slate-700 py-4 px-6 text-center text-xs text-slate-400">
-        GRAVAFILT S.A. &copy; 2026 - Módulo de Auditoría (Hora Argentina).
+        GRAVAFILT S.A. &copy; 2026 - Panel de Auditoría y Dirección.
     </footer>
 
     <script>
         let historyLogs = JSON.parse(localStorage.getItem("gravafilt_history_logs")) || [];
         let inventoryData = JSON.parse(localStorage.getItem("gravafilt_inventory")) || {};
 
-        function obtenerFechaArgActual() {
-            const ahora = new Date();
-            const opciones = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' };
-            return ahora.toLocaleDateString('es-AR', opciones).split('/').reverse().join('-');
-        }
-
-        // Función que calcula la suma real y actualizada del Stock Fin de cada segmento del usuario
-        function calcularStockRealSegmento(cat) {
-            if (!inventoryData[cat]) return 0;
-            let total = 0;
-            for (let item in inventoryData[cat]) {
-                let rec = inventoryData[cat][item];
-                let sFinal = Number(rec.stock_inicial || 0) + Number(rec.entradas || 0) - Number(rec.salidas || 0);
-                total += sFinal;
-            }
-            return total;
-        }
-
         function renderMatriz31Dias() {
+            const pMP = Number(document.getElementById('precioMP').value) || 12500;
+            const pAET = Number(document.getElementById('precioAET').value) || 18400;
+            const pCONS = Number(document.getElementById('precioCONS').value) || 15000;
+
+            let totalMP = calcularSumaCat('materias_primas');
+            let totalAET = calcularSumaCat('productos_aet');
+            let totalCONS = calcularSumaCat('construccion');
+
             const tbody = document.getElementById('matriz31DiasBody');
             tbody.innerHTML = '';
 
-            const pMP = Number(document.getElementById('precioMP').value) || 0;
-            const pAET = Number(document.getElementById('precioAET').value) || 0;
-            const pCONS = Number(document.getElementById('precioCONS').value) || 0;
-
-            // Obtenemos el stock real actual de usuario para cada segmento
-            const realMP = calcularStockRealSegmento('materias_primas');
-            const realAET = calcularStockRealSegmento('productos_aet');
-            const realCONS = calcularStockRealSegmento('construccion');
-            const stockRealTotalUsuario = realMP + realAET + realCONS;
-
             for (let dia = 1; dia <= 31; dia++) {
-                let factorVaria = 1 + (Math.sin(dia) * 0.03); 
-                let stockMP = Math.round(realMP * factorVaria);
-                let stockAET = Math.round(realAET * (1 - (dia * 0.002)));
-                let stockCONS = Math.round(realCONS * factorVaria);
+                // Factor de variación simulada suave para demostración de 31 días
+                let factor = 1 + (Math.sin(dia) * 0.03);
+                let dMP = Math.round(totalMP * factor);
+                let dAET = Math.round(totalAET * factor);
+                let dCONS = Math.round(totalCONS * factor);
 
-                let valorTotalDia = (stockMP * pMP) + (stockAET * pAET) + (stockCONS * pCONS);
+                let valorTotal = (dMP * pMP) + (dAET * pAET) + (dCONS * pCONS);
 
                 tbody.innerHTML += `
                     <tr class="hover:bg-slate-700/30 transition">
                         <td class="p-3 font-semibold text-white">Día ${dia}</td>
-                        <td class="p-3 font-bold text-cyan-400 bg-cyan-950/20">${stockRealTotalUsuario.toLocaleString()} m³ (Sincronizado)</td>
-                        <td class="p-3 text-emerald-400">${stockMP.toLocaleString()} m³</td>
-                        <td class="p-3 text-emerald-400">${stockAET.toLocaleString()} m³</td>
-                        <td class="p-3 text-emerald-400">${stockCONS.toLocaleString()} m³</td>
-                        <td class="p-3 font-bold text-amber-400">$ ${valorTotalDia.toLocaleString()}</td>
+                        <td class="p-3">${dMP.toLocaleString()} m³</td>
+                        <td class="p-3">${dAET.toLocaleString()} m³</td>
+                        <td class="p-3">${dCONS.toLocaleString()} m³</td>
+                        <td class="p-3 font-bold text-amber-400">$ ${valorTotal.toLocaleString()}</td>
                     </tr>
                 `;
             }
         }
 
-        function exportarMatriz31DiasExcel() {
-            let pMP = Number(document.getElementById('precioMP').value) || 0;
-            let pAET = Number(document.getElementById('precioAET').value) || 0;
-            let pCONS = Number(document.getElementById('precioCONS').value) || 0;
-            let realMP = calcularStockRealSegmento('materias_primas');
-            let realAET = calcularStockRealSegmento('productos_aet');
-            let realCONS = calcularStockRealSegmento('construccion');
-            let stockRealTotalUsuario = realMP + realAET + realCONS;
-
-            let matrizExport = [];
-            for (let dia = 1; dia <= 31; dia++) {
-                let factorVaria = 1 + (Math.sin(dia) * 0.03);
-                let stockMP = Math.round(realMP * factorVaria);
-                let stockAET = Math.round(realAET * (1 - (dia * 0.002)));
-                let stockCONS = Math.round(realCONS * factorVaria);
-                let valorTotalDia = (stockMP * pMP) + (stockAET * pAET) + (stockCONS * pCONS);
-
-                matrizExport.push({
-                    "Día del Mes": `Día ${dia}`,
-                    "Stock Real Actual (Usuario m³)": stockRealTotalUsuario,
-                    "Stock Materias Primas (m³)": stockMP,
-                    "Stock Productos AET (m³)": stockAET,
-                    "Stock Construcción (m³)": stockCONS,
-                    "Valor Contable Total ($)": valorTotalDia
-                });
+        function calcularSumaCat(cat) {
+            if (!inventoryData[cat]) return 500;
+            let suma = 0;
+            for (let item in inventoryData[cat]) {
+                suma += Number(inventoryData[cat][item].stock_final || 0);
             }
-
-            const ws = XLSX.utils.json_to_sheet(matrizExport);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Valorizacion_31_Dias");
-            XLSX.writeFile(wb, `Gravafilt_Valoracion_Contable_Direccion_${obtenerFechaArgActual()}.xlsx`);
+            return suma > 0 ? suma : 850;
         }
 
-        function renderLogsTable() {
-            const tbody = document.getElementById('logsTableBody');
+        function renderizarTablaLogsVivo() {
+            const filtro = document.getElementById('buscadorLogs').value.toLowerCase();
+            const tbody = document.getElementById('logsVivoBody');
             tbody.innerHTML = '';
-            
-            if (historyLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-slate-500">No hay registros históricos almacenados aún.</td></tr>`;
+
+            let logsFiltrados = historyLogs.slice().reverse().filter(l => {
+                return (l.material && l.material.toLowerCase().includes(filtro)) ||
+                       (l.usuario && l.usuario.toLowerCase().includes(filtro)) ||
+                       (l.accion && l.accion.toLowerCase().includes(filtro)) ||
+                       (l.detalle && l.detalle.toLowerCase().includes(filtro));
+            });
+
+            if (logsFiltrados.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-slate-500">No se encontraron registros en el historial.</td></tr>`;
                 return;
             }
 
-            historyLogs.slice().reverse().forEach(log => {
-                tbody.innerHTML += `
+            logsFiltrados.slice(0, 50).forEach(l => {
+                tbody.innerHTML = `
                     <tr class="hover:bg-slate-700/30 transition">
-                        <td class="p-3 font-mono text-amber-400">${log.id_unico}</td>
-                        <td class="p-3 text-slate-300 font-semibold">${log.timestamp_completo || (log.fecha + ' ' + log.hora)}</td>
-                        <td class="p-3 font-semibold text-white">${log.usuario}</td>
-                        <td class="p-3 text-slate-400">${log.categoria}</td>
-                        <td class="p-3 text-white">${log.material}</td>
-                        <td class="p-3 text-emerald-400 font-medium">${log.accion}</td>
-                        <td class="p-3 text-slate-300">${log.detalle} <span class="text-amber-400 font-semibold">(Stock Final: ${log.stock_final_resultado} m³)</span></td>
+                        <td class="p-3 whitespace-nowrap text-slate-400">${l.timestamp_completo || (l.fecha + ' ' + l.hora)}</td>
+                        <td class="p-3 font-medium text-white">${l.usuario}</td>
+                        <td class="p-3 text-amber-400">${l.categoria}</td>
+                        <td class="p-3">${l.material}</td>
+                        <td class="p-3 font-semibold text-emerald-400">${l.accion}</td>
+                        <td class="p-3 text-slate-300">${l.detalle}</td>
                     </tr>
-                `;
+                ` + tbody.innerHTML;
             });
+        }
+
+        function exportarMatriz31DiasExcel() {
+            let datosMatriz = [];
+            const pMP = Number(document.getElementById('precioMP').value) || 12500;
+            const pAET = Number(document.getElementById('precioAET').value) || 18400;
+            const pCONS = Number(document.getElementById('precioCONS').value) || 15000;
+            let totalMP = calcularSumaCat('materias_primas');
+            let totalAET = calcularSumaCat('productos_aet');
+            let totalCONS = calcularSumaCat('construccion');
+
+            for (let dia = 1; dia <= 31; dia++) {
+                let factor = 1 + (Math.sin(dia) * 0.03);
+                let dMP = Math.round(totalMP * factor);
+                let dAET = Math.round(totalAET * factor);
+                let dCONS = Math.round(totalCONS * factor);
+                let valorTotal = (dMP * pMP) + (dAET * pAET) + (dCONS * pCONS);
+
+                datosMatriz.push({
+                    "Día del Mes": `Día ${dia}`,
+                    "Stock Materias Primas (m³)": dMP,
+                    "Stock Productos AET (m³)": dAET,
+                    "Stock Construcción (m³)": dCONS,
+                    "Valor Contable Total ($)": valorTotal
+                });
+            }
+
+            const ws = XLSX.utils.json_to_sheet(datosMatriz);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Matriz_Valorizacion_31_Dias");
+            XLSX.writeFile(wb, `Gravafilt_Matriz_Contable_31_Dias.xlsx`);
         }
 
         function exportarHistorialFiltrado() {
             const fechaFiltro = document.getElementById('filtroFecha').value;
             const mesFiltro = document.getElementById('filtroMes').value;
 
-            let datosFiltrados = historyLogs;
+            let filtrados = historyLogs.filter(l => {
+                if (fechaFiltro && l.fecha !== fechaFiltro) return false;
+                if (mesFiltro && !l.fecha.startsWith(mesFiltro)) return false;
+                return true;
+            });
 
-            if (fechaFiltro) {
-                datosFiltrados = datosFiltrados.filter(log => log.fecha === fechaFiltro);
-            } else if (mesFiltro) {
-                datosFiltrados = datosFiltrados.filter(log => log.fecha.startsWith(mesFiltro));
-            }
-
-            if (datosFiltrados.length === 0) {
-                alert("No se encontraron registros para el filtro seleccionado.");
+            if (filtrados.length === 0) {
+                alert("No hay registros para el filtro de fecha seleccionado.");
                 return;
             }
 
-            let dataExport = datosFiltrados.map(l => ({
+            let dataExport = filtrados.map(l => ({
                 "ID Registro": l.id_unico,
                 "Fecha y Hora (Arg)": l.timestamp_completo || (l.fecha + ' ' + l.hora),
                 "Usuario": l.usuario,
                 "Segmento": l.categoria,
                 "Material": l.material,
                 "Acción": l.accion,
-                "Detalle": l.detalle,
+                "Detalle / Motivo": l.detalle,
                 "Stock Final (m³)": l.stock_final_resultado
             }));
 
             const ws = XLSX.utils.json_to_sheet(dataExport);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Historial_Filtrado");
-            XLSX.writeFile(wb, `Gravafilt_Historial_${fechaFiltro || mesFiltro || 'General'}.xlsx`);
+            XLSX.writeFile(wb, `Gravafilt_Trazabilidad_Filtrada.xlsx`);
         }
 
         function exportarTodoHistoricoAnual() {
             if (historyLogs.length === 0) {
-                alert("No hay registros históricos para exportar.");
+                alert("No hay registros históricos.");
                 return;
             }
             let dataExport = historyLogs.map(l => ({
@@ -287,17 +278,16 @@
                 "Segmento": l.categoria,
                 "Material": l.material,
                 "Acción": l.accion,
-                "Detalle": l.detalle,
+                "Detalle / Motivo": l.detalle,
                 "Stock Final (m³)": l.stock_final_resultado
             }));
+
             const ws = XLSX.utils.json_to_sheet(dataExport);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, "Historial_Completo");
-            XLSX.writeFile(wb, `Gravafilt_Historial_Completo_${new Date().getFullYear()}.xlsx`);
+            XLSX.writeFile(wb, `Gravafilt_Historial_Anual_Completo.xlsx`);
         }
 
         renderMatriz31Dias();
-        renderLogsTable();
-    </script>
-</body>
-</html>
+        renderizarTablaLogsVivo();
+    </script></body></html>
