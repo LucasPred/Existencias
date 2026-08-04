@@ -91,7 +91,7 @@
                             <th class="p-3">Stock Mín. Alerta</th>
                             <th class="p-3">Stock Inicial</th>
                             <th class="p-3">Entradas (SR Measure)</th>
-                            <th class="p-3">Salidas Acumuladas</th>
+                            <th class="p-3">Salidas Acumuladas (Editable)</th>
                             <th class="p-3">Stock Final</th>
                             <th class="p-3">Área (m²)</th>
                             <th class="p-3">Área SR Measure</th>
@@ -290,7 +290,9 @@
                         <td class="p-3">
                             <input type="number" value="${record.entradas}" onchange="actualizarEntradasConMotivo('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-emerald-400 font-semibold rounded px-2 py-1 w-20 focus:outline-none focus:border-emerald-500"> m³
                         </td>
-                        <td class="p-3 text-rose-400 font-semibold">${record.salidas} m³</td>
+                        <td class="p-3">
+                            <input type="number" value="${record.salidas}" onchange="actualizarSalidasConMotivo('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-rose-400 font-semibold rounded px-2 py-1 w-20 focus:outline-none focus:border-rose-500" title="Editar salidas acumuladas"> m³
+                        </td>
                         <td class="p-3 font-bold text-amber-400 text-base">${record.stock_final} m³</td>
                         <td class="p-3">${record.area_m2} m²</td>
                         <td class="p-3">
@@ -403,6 +405,29 @@
             }
         }
 
+        function actualizarSalidasConMotivo(cat, item, nuevasSalidas) {
+            let val = Number(nuevasSalidas);
+            if (!isNaN(val) && val >= 0) {
+                let motivo = prompt(`Ingrese motivo o justificación para la corrección de salidas de "${item}":`, "Corrección de ticket / Ajuste de inventario");
+                if (motivo !== null) {
+                    let rec = inventoryData[cat][item];
+                    let salidasAnteriores = rec.salidas;
+                    const dtArg = obtenerFechaHoraArg();
+                    
+                    rec.salidas = val;
+                    rec.ultima_actualizacion = dtArg.completo;
+                    
+                    registrarLogHistorico(cat, item, "CORRECCIÓN SALIDAS", `Salidas modificadas de ${salidasAnteriores} m³ a ${val} m³. Motivo: ${motivo}`);
+                    renderTable();
+                } else {
+                    renderTable();
+                }
+            } else {
+                alert("Por favor, ingrese un valor numérico válido mayor o igual a 0.");
+                renderTable();
+            }
+        }
+
         function registrarTicketVenta(cat, item) {
             const ticketVal = prompt(`Ingrese metros cúbicos del ticket de venta (0.5 a 30 m³):`, "5.5");
             if (ticketVal !== null) {
@@ -468,10 +493,9 @@
             }
         }
 
-        // Lógica de Cierre Automático a las 20:00 hs y Envío Institucional Simulado
+        // Lógica de Cierre Automático a las 20:00 hs y Envío Institucional a lsantiago@gravafilt.com.ar
         function verificarHorarioCierreAutomatico() {
             const dtArg = obtenerFechaHoraArg();
-            // Si la hora es mayor o igual a 20 hs, mostramos el banner de cierre de jornada
             if (dtArg.horaNumerica >= 20) {
                 document.getElementById('cierreBanner').classList.remove('hidden');
             }
@@ -495,7 +519,7 @@
             localStorage.setItem(claveCierre, "true");
             registrarLogHistorico("GENERAL", "CIERRE 20 HS", "REPORTE DIARIO", `Cierre de jornada ejecutado. Stock global consolidado: ${resumenTotalMats} m³`);
             
-            alert(`✅ REPORTE GENERAL DE EXISTENCIAS (20:00 HS) EMITIDO.\n\nEnviado exitosamente al correo institucional: direccion@gravafilt.com.ar\nVolumen total auditado: ${resumenTotalMats} m³.`);
+            alert(`✅ REPORTE GENERAL DE EXISTENCIAS (20:00 HS) EMITIDO.\n\nEnviado exitosamente al correo institucional: lsantiago@gravafilt.com.ar\nVolumen total auditado: ${resumenTotalMats} m³.`);
             document.getElementById('cierreBanner').classList.add('hidden');
         }
 
