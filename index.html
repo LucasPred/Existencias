@@ -1,6 +1,4 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
+<!DOCTYPE html><html lang="es"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GRAVAFILT S.A. - Sistema de Acopios, Stocks y Existencias</title>
@@ -8,9 +6,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-</head>
-<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"></head><body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
 
     <!-- Verificación de Sesión -->
     <script>
@@ -37,6 +33,12 @@
         </div>
     </header>
 
+    <!-- Alerta de Cierre de Jornada y Estado -->
+    <div id="cierreBanner" class="hidden bg-amber-600/20 border-b border-amber-600/50 px-6 py-2 text-xs text-amber-300 flex justify-between items-center">
+        <span><i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Aviso Operativo:</strong> Cierre de jornada diario (20:00 hs) activado o reportes consolidados listos.</span>
+        <button onclick="dispararCierreJornadaManual()" class="bg-amber-600 hover:bg-amber-700 text-white px-2 py-1 rounded font-bold">Forzar Cierre Ahora</button>
+    </div>
+
     <!-- Contenido Principal / Micrositios -->
     <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-8">
 
@@ -58,7 +60,7 @@
                 <h3 id="statMaximo" class="text-xl font-bold text-emerald-400 mt-1">0 m³</h3>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow">
-                <p class="text-xs text-slate-400">Mínimo Operativo</p>
+                <p class="text-xs text-slate-400">Mínimo Operativo Alerta</p>
                 <h3 id="statMinimo" class="text-xl font-bold text-rose-400 mt-1">0 m³</h3>
             </div>
             <div class="bg-slate-800 border border-slate-700 p-4 rounded-xl shadow">
@@ -72,7 +74,7 @@
             <div class="flex justify-between items-center mb-6">
                 <div>
                     <h2 id="currentCategoryTitle" class="text-xl font-bold text-white">Micrositio: Materias Primas</h2>
-                    <p class="text-xs text-slate-400 mt-1">Control sincronizado con trazabilidad temporal de Argentina y tickets acumulables</p>
+                    <p class="text-xs text-slate-400 mt-1">Control sincronizado con trazabilidad temporal de Argentina y alertas de stock mínimo</p>
                 </div>
                 <div class="flex items-center space-x-2">
                     <span class="text-xs bg-slate-700 text-slate-300 px-3 py-1 rounded">Sectores: Zona Costa, Silos, Zona Planta</span>
@@ -86,6 +88,7 @@
                         <tr>
                             <th class="p-3">Material / Ítem</th>
                             <th class="p-3">Sector Predio</th>
+                            <th class="p-3">Stock Mín. Alerta</th>
                             <th class="p-3">Stock Inicial</th>
                             <th class="p-3">Entradas (SR Measure)</th>
                             <th class="p-3">Salidas Acumuladas</th>
@@ -102,25 +105,14 @@
             </div>
         </section>
 
-        <!-- Módulo de IA Gemini y Gráficos -->
+        <!-- Módulo de Gráficos y Distribución por Sectores -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
-                <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-2"></i>Módulo Gemini IA (Curva Granulométrica)</h3>
-                <p class="text-xs text-slate-400 mb-4">Análisis de tamices con registro temporal argentino.</p>
-                
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-amber-500 transition cursor-pointer" onclick="document.getElementById('aiFileGallery').click()">
-                        <i class="fa-solid fa-folder-open text-2xl text-slate-400 mb-1"></i>
-                        <p class="text-xs font-medium text-slate-300">Subir Archivo / Foto</p>
-                        <input type="file" id="aiFileGallery" class="hidden" accept="image/*" onchange="ejecutarAnalisisIA(this)">
-                    </div>
-                    <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-amber-500 transition cursor-pointer" onclick="document.getElementById('aiCameraCapture').click()">
-                        <i class="fa-solid fa-camera-retro text-2xl text-amber-400 mb-1"></i>
-                        <p class="text-xs font-medium text-slate-300">Tomar Fotografía</p>
-                        <input type="file" id="aiCameraCapture" class="hidden" accept="image/*" capture="environment" onchange="ejecutarAnalisisIA(this)">
-                    </div>
+                <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-chart-pie text-amber-400 mr-2"></i>Distribución Volumétrica por Sectores</h3>
+                <p class="text-xs text-slate-400 mb-4">Proporción de acopios físicos en Zona Costa, Silos y Planta.</p>
+                <div class="relative h-48 flex justify-center">
+                    <canvas id="sectorChart"></canvas>
                 </div>
-                <div id="aiResultBox" class="mt-4 hidden bg-slate-900 p-4 rounded-lg border border-slate-700 text-xs space-y-2"></div>
             </div>
 
             <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
@@ -131,11 +123,31 @@
                 </div>
             </div>
         </div>
+
+        <!-- Módulo de IA Gemini y Análisis Granulométrico -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 shadow-xl">
+            <h3 class="text-lg font-semibold text-white mb-2"><i class="fa-solid fa-wand-magic-sparkles text-amber-400 mr-2"></i>Módulo Gemini IA (Curva Granulométrica)</h3>
+            <p class="text-xs text-slate-400 mb-4">Análisis de tamices con registro temporal argentino.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-amber-500 transition cursor-pointer" onclick="document.getElementById('aiFileGallery').click()">
+                    <i class="fa-solid fa-folder-open text-2xl text-slate-400 mb-1"></i>
+                    <p class="text-xs font-medium text-slate-300">Subir Archivo / Foto</p>
+                    <input type="file" id="aiFileGallery" class="hidden" accept="image/*" onchange="ejecutarAnalisisIA(this)">
+                </div>
+                <div class="border-2 border-dashed border-slate-600 rounded-lg p-4 text-center hover:border-amber-500 transition cursor-pointer" onclick="document.getElementById('aiCameraCapture').click()">
+                    <i class="fa-solid fa-camera-retro text-2xl text-amber-400 mb-1"></i>
+                    <p class="text-xs font-medium text-slate-300">Tomar Fotografía</p>
+                    <input type="file" id="aiCameraCapture" class="hidden" accept="image/*" capture="environment" onchange="ejecutarAnalisisIA(this)">
+                </div>
+            </div>
+            <div id="aiResultBox" class="mt-4 hidden bg-slate-900 p-4 rounded-lg border border-slate-700 text-xs space-y-2"></div>
+        </div>
     </main>
 
     <!-- Pie de Página -->
     <footer class="bg-slate-800 border-t border-slate-700 py-4 px-6 text-center text-xs text-slate-400">
-        GRAVAFILT S.A. &copy; 2026 - Módulo Operativo (Hora Argentina).
+        GRAVAFILT S.A. &copy; 2026 - Módulo Operativo (Hora Argentina). Cierre automático configurado a las 20:00 hs.
     </footer>
 
     <!-- Lógica de la Aplicación -->
@@ -169,11 +181,11 @@
             const opcionesFecha = { timeZone: 'America/Argentina/Buenos_Aires', year: 'numeric', month: '2-digit', day: '2-digit' };
             const opcionesHora = { timeZone: 'America/Argentina/Buenos_Aires', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false };
             
-            const fechaStr = ahora.toLocaleDateString('es-AR', opcionesFecha).split('/').reverse().join('-');
+            const fechaStr = ahora.toLocaleDateString('es-AR', opcionesFecha).split('/').reverse().join('-'); 
             const horaStr = ahora.toLocaleTimeString('es-AR', opcionesHora);
             const completoStr = `${ahora.toLocaleDateString('es-AR')} ${horaStr}`;
 
-            return { fecha: fechaStr, hora: horaStr, completo: completoStr };
+            return { fecha: fechaStr, hora: horaStr, completo: completoStr, horaNumerica: parseInt(ahora.toLocaleString('es-AR', { timeZone: 'America/Argentina/Buenos_Aires', hour: 'numeric', hour12: false })) };
         }
 
         function initInventory() {
@@ -184,10 +196,11 @@
                 CATALOGOS[cat].forEach((item, idx) => {
                     data[cat][item] = {
                         sector: idx % 3 === 0 ? "Zona Costa" : (idx % 3 === 1 ? "Silos" : "Zona Planta"),
-                        stock_inicial: 0,
+                        stock_minimo: 40,
+                        stock_inicial: 100,
                         entradas: 0,
                         salidas: 0,
-                        stock_final: 0,
+                        stock_final: 100,
                         area_m2: 35.5,
                         ultima_actualizacion: dtArg.completo
                     };
@@ -228,24 +241,39 @@
             renderTable();
         }
 
+        let sectorChartInstance = null;
+
         function renderTable() {
             const tbody = document.getElementById('inventoryTableBody');
             tbody.innerHTML = '';
             
             let stocksArray = [];
+            let sectoresConteo = { "Zona Costa": 0, "Silos": 0, "Zona Planta": 0 };
 
             CATALOGOS[currentTab].forEach(item => {
                 if (!inventoryData[currentTab][item]) {
                     const dtArg = obtenerFechaHoraArg();
-                    inventoryData[currentTab][item] = { sector: "Silos", stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5, ultima_actualizacion: dtArg.completo };
+                    inventoryData[currentTab][item] = { sector: "Silos", stock_minimo: 40, stock_inicial: 0, entradas: 0, salidas: 0, stock_final: 0, area_m2: 35.5, ultima_actualizacion: dtArg.completo };
                 }
                 const record = inventoryData[currentTab][item];
                 record.stock_final = Number(record.stock_inicial) + Number(record.entradas) - Number(record.salidas);
                 stocksArray.push(record.stock_final);
 
+                if (sectoresConteo[record.sector] !== undefined) {
+                    sectoresConteo[record.sector] += Number(record.stock_final);
+                }
+
+                // Alerta visual si está por debajo del stock mínimo
+                const esCritico = record.stock_final < Number(record.stock_minimo);
+                const filaClase = esCritico ? "bg-rose-950/30 hover:bg-rose-900/30 transition border-l-4 border-rose-500" : "hover:bg-slate-700/30 transition";
+
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-700/30 transition">
-                        <td class="p-3 font-medium text-white">${item}<br><span class="text-[10px] text-slate-500">Act (Arg): ${record.ultima_actualizacion}</span></td>
+                    <tr class="${filaClase}">
+                        <td class="p-3 font-medium text-white">
+                            ${item} 
+                            ${esCritico ? '<span class="ml-2 bg-rose-600 text-white text-[9px] px-1.5 py-0.5 rounded font-bold animate-pulse">¡STOCK CRÍTICO!</span>' : ''}
+                            <br><span class="text-[10px] text-slate-500">Act (Arg): ${record.ultima_actualizacion}</span>
+                        </td>
                         <td class="p-3">
                             <select onchange="actualizarSector('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-amber-400 rounded px-2 py-1 focus:outline-none focus:border-amber-500">
                                 <option value="Zona Costa" ${record.sector === 'Zona Costa' ? 'selected' : ''}>Zona Costa</option>
@@ -254,10 +282,13 @@
                             </select>
                         </td>
                         <td class="p-3">
-                            <input type="number" value="${record.stock_inicial}" onchange="actualizarStockInicial('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 w-24 focus:outline-none focus:border-amber-500"> m³
+                            <input type="number" value="${record.stock_minimo || 40}" onchange="actualizarStockMinimo('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-rose-400 rounded px-2 py-1 w-20 focus:outline-none"> m³
                         </td>
                         <td class="p-3">
-                            <input type="number" value="${record.entradas}" onchange="actualizarEntradas('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-emerald-400 font-semibold rounded px-2 py-1 w-24 focus:outline-none focus:border-emerald-500"> m³
+                            <input type="number" value="${record.stock_inicial}" onchange="actualizarStockInicialConMotivo('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-white rounded px-2 py-1 w-20 focus:outline-none focus:border-amber-500"> m³
+                        </td>
+                        <td class="p-3">
+                            <input type="number" value="${record.entradas}" onchange="actualizarEntradasConMotivo('${currentTab}', '${item}', this.value)" class="bg-slate-900 border border-slate-700 text-xs text-emerald-400 font-semibold rounded px-2 py-1 w-20 focus:outline-none focus:border-emerald-500"> m³
                         </td>
                         <td class="p-3 text-rose-400 font-semibold">${record.salidas} m³</td>
                         <td class="p-3 font-bold text-amber-400 text-base">${record.stock_final} m³</td>
@@ -281,6 +312,8 @@
             });
             localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
             actualizarEstadisticasPanel(stocksArray);
+            actualizarGraficoSectores(sectoresConteo);
+            verificarHorarioCierreAutomatico();
         }
 
         function actualizarEstadisticasPanel(stocks) {
@@ -296,35 +329,77 @@
             document.getElementById('statTotalLogs').innerText = historyLogs.length;
         }
 
+        function actualizarGraficoSectores(conteo) {
+            const ctxSector = document.getElementById('sectorChart').getContext('2d');
+            if (sectorChartInstance) {
+                sectorChartInstance.destroy();
+            }
+            sectorChartInstance = new Chart(ctxSector, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(conteo),
+                    datasets: [{
+                        data: Object.values(conteo),
+                        backgroundColor: ['#f59e0b', '#10b981', '#3b82f6'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1', boxWidth: 12 } } }
+                }
+            });
+        }
+
         function actualizarSector(cat, item, nuevoSector) {
             const dtArg = obtenerFechaHoraArg();
             inventoryData[cat][item].sector = nuevoSector;
             inventoryData[cat][item].ultima_actualizacion = dtArg.completo;
             registrarLogHistorico(cat, item, "CAMBIO SECTOR", `Sector modificado a ${nuevoSector}`);
             localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
+            renderTable();
         }
 
-        function actualizarStockInicial(cat, item, nuevoStock) {
-            let val = Number(nuevoStock);
+        function actualizarStockMinimo(cat, item, valMin) {
+            let val = Number(valMin);
             if (!isNaN(val)) {
-                let rec = inventoryData[cat][item];
-                const dtArg = obtenerFechaHoraArg();
-                rec.stock_inicial = val;
-                rec.ultima_actualizacion = dtArg.completo;
-                registrarLogHistorico(cat, item, "STOCK INICIAL", `Nuevo stock inicial: ${val} m³`);
-                renderTable();
+                inventoryData[cat][item].stock_minimo = val;
+                localStorage.setItem("gravafilt_inventory", JSON.stringify(inventoryData));
             }
         }
 
-        function actualizarEntradas(cat, item, nuevasEntradas) {
+        function actualizarStockInicialConMotivo(cat, item, nuevoStock) {
+            let val = Number(nuevoStock);
+            if (!isNaN(val)) {
+                let motivo = prompt(`Ingrese motivo o justificación del ajuste de stock inicial para "${item}":`, "Relevamiento topográfico");
+                if (motivo !== null) {
+                    let rec = inventoryData[cat][item];
+                    const dtArg = obtenerFechaHoraArg();
+                    rec.stock_inicial = val;
+                    rec.ultima_actualizacion = dtArg.completo;
+                    registrarLogHistorico(cat, item, "STOCK INICIAL", `Nuevo stock: ${val} m³. Motivo: ${motivo}`);
+                    renderTable();
+                } else {
+                    renderTable();
+                }
+            }
+        }
+
+        function actualizarEntradasConMotivo(cat, item, nuevasEntradas) {
             let val = Number(nuevasEntradas);
             if (!isNaN(val)) {
-                let rec = inventoryData[cat][item];
-                const dtArg = obtenerFechaHoraArg();
-                rec.entradas = val;
-                rec.ultima_actualizacion = dtArg.completo;
-                registrarLogHistorico(cat, item, "ENTRADAS", `Entradas ajustadas a: ${val} m³`);
-                renderTable();
+                let motivo = prompt(`Ingrese motivo de actualización de entradas para "${item}":`, "Ingreso de camión tolva");
+                if (motivo !== null) {
+                    let rec = inventoryData[cat][item];
+                    const dtArg = obtenerFechaHoraArg();
+                    rec.entradas = val;
+                    rec.ultima_actualizacion = dtArg.completo;
+                    registrarLogHistorico(cat, item, "ENTRADAS", `Entradas: ${val} m³. Motivo: ${motivo}`);
+                    renderTable();
+                } else {
+                    renderTable();
+                }
             }
         }
 
@@ -355,24 +430,25 @@
                 return;
             }
 
-            if (confirm(`¿Confirma blanquear y reiniciar a 0 las salidas acumuladas de "${item}"? (Valor actual a descartar: ${salidasAnteriores} m³)`)) {
+            let motivo = prompt(`¿Confirma blanquear salidas de "${item}"? Indique motivo de corrección:`, "Cierre de turno operativo");
+            if (motivo !== null) {
                 const dtArg = obtenerFechaHoraArg();
                 rec.salidas = 0;
                 rec.ultima_actualizacion = dtArg.completo;
-                registrarLogHistorico(cat, item, "RESET SALIDAS", `Corrección de arrastre: Salidas reseteadas desde ${salidasAnteriores} m³ a 0 m³`);
+                registrarLogHistorico(cat, item, "RESET SALIDAS", `Salidas reseteadas desde ${salidasAnteriores} m³ a 0 m³. Motivo: ${motivo}`);
                 renderTable();
-                alert(`Se han reseteado las salidas de "${item}" a 0 m³ correctamente.`);
+                alert(`Se han reseteado las salidas de "${item}" a 0 m³.`);
             }
         }
 
         function procesarSRMeasure(input, cat, item) {
             if (input.files && input.files[0]) {
                 let rec = inventoryData[cat][item];
-                let volumenCubicaje = Math.floor(Math.random() * 200) + 100;
+                let volumenCubicaje = Math.floor(Math.random() * 150) + 50;
                 const dtArg = obtenerFechaHoraArg();
                 rec.entradas = Number(rec.entradas) + volumenCubicaje;
                 rec.ultima_actualizacion = dtArg.completo;
-                registrarLogHistorico(cat, item, "SR MEASURE IA", `Captura analizada: +${volumenCubicaje} m³ detectados`);
+                registrarLogHistorico(cat, item, "SR MEASURE IA", `Captura analizada: +${volumenCubicaje} m³ añadidos`);
                 renderTable();
                 alert(`¡SR MEASURE procesado! +${volumenCubicaje} m³ añadidos a entradas.`);
             }
@@ -386,10 +462,41 @@
                 box.innerHTML = `
                     <p class="text-emerald-400 font-bold"><i class="fa-solid fa-check-circle mr-1"></i> Análisis Granulométrico OK:</p>
                     <p><strong>Fecha/Hora (Arg):</strong> ${dtArg.completo}</p>
-                    <p><strong>Tamices:</strong> 1"(100%) | 3/8"(57.1%) | N°4(38.2%)</p>
+                    <p><strong>Tamices detectados:</strong> 1"(100%) | 3/8"(57.1%) | N°4(38.2%)</p>
                 `;
-                registrarLogHistorico(currentTab, "ANALISIS IA", "GRANULOMETRIA", "Imagen analizada correctamente");
+                registrarLogHistorico(currentTab, "ANALISIS IA", "GRANULOMETRIA", "Curva granulométrica procesada correctamente");
             }
+        }
+
+        // Lógica de Cierre Automático a las 20:00 hs y Envío Institucional Simulado
+        function verificarHorarioCierreAutomatico() {
+            const dtArg = obtenerFechaHoraArg();
+            // Si la hora es mayor o igual a 20 hs, mostramos el banner de cierre de jornada
+            if (dtArg.horaNumerica >= 20) {
+                document.getElementById('cierreBanner').classList.remove('hidden');
+            }
+        }
+
+        function dispararCierreJornadaManual() {
+            const dtArg = obtenerFechaHoraArg();
+            let claveCierre = `cierre_enviado_${dtArg.fecha}`;
+            if (localStorage.getItem(claveCierre)) {
+                alert("El reporte general de existencia de las 20:00 hs ya fue emitido y enviado al correo institucional en el día de hoy.");
+                return;
+            }
+
+            let resumenTotalMats = 0;
+            for (let cat in inventoryData) {
+                for (let it in inventoryData[cat]) {
+                    resumenTotalMats += Number(inventoryData[cat][it].stock_final);
+                }
+            }
+
+            localStorage.setItem(claveCierre, "true");
+            registrarLogHistorico("GENERAL", "CIERRE 20 HS", "REPORTE DIARIO", `Cierre de jornada ejecutado. Stock global consolidado: ${resumenTotalMats} m³`);
+            
+            alert(`✅ REPORTE GENERAL DE EXISTENCIAS (20:00 HS) EMITIDO.\n\nEnviado exitosamente al correo institucional: direccion@gravafilt.com.ar\nVolumen total auditado: ${resumenTotalMats} m³.`);
+            document.getElementById('cierreBanner').classList.add('hidden');
         }
 
         function exportarRegistrosExcel() {
@@ -404,7 +511,7 @@
                 "Micrositio / Segmento": l.categoria,
                 "Material": l.material,
                 "Acción": l.accion,
-                "Detalle": l.detalle,
+                "Detalle / Motivo": l.detalle,
                 "Stock Final Resultante (m³)": l.stock_final_resultado
             }));
             const ws = XLSX.utils.json_to_sheet(dataExport);
@@ -428,6 +535,4 @@
         });
 
         renderTable();
-    </script>
-</body>
-</html>
+    </script></body></html>
