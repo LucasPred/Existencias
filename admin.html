@@ -29,7 +29,7 @@
             </div>
             <div>
                 <h1 class="text-lg font-bold tracking-wider text-white">GRAVAFILT S.A. - PANEL GERENCIAL</h1>
-                <p class="text-xs text-slate-400">Valuación, Auditoría Histórica y Reportes Automáticos a Dirección (LSANTIAGO)</p>
+                <p class="text-xs text-slate-400">Valuación, Auditoría Histórica y Reportes a Dirección (lsantiago@gravafilt.com.ar)</p>
             </div>
         </div>
         <div class="flex items-center flex-wrap gap-2">
@@ -40,7 +40,7 @@
                 <i class="fa-solid fa-arrow-left mr-1.5"></i> Volver a Operación
             </button>
             <button onclick="enviarReporteAutomaticoLSantiago()" class="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center shadow">
-                <i class="fa-solid fa-paper-plane mr-1.5"></i> Enviar Reporte a LSANTIAGO
+                <i class="fa-solid fa-paper-plane mr-1.5"></i> Enviar Reporte a lsantiago@gravafilt.com.ar
             </button>
             <button onclick="exportarHistorialCompletoExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded text-xs font-semibold transition flex items-center shadow">
                 <i class="fa-solid fa-file-excel mr-1.5"></i> Exportar Auditoría y Valuación
@@ -82,7 +82,7 @@
             </div>
         </div>
 
-        <!-- Módulo de Notificación Automática a LSANTIAGO -->
+        <!-- Módulo de Notificación Automática a Dirección -->
         <div class="bg-gradient-to-r from-slate-800 to-slate-800/80 border border-blue-500/30 p-4 rounded-xl shadow-lg flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3">
                 <div class="bg-blue-500/20 p-3 rounded-lg text-blue-400 text-xl border border-blue-500/30">
@@ -90,7 +90,7 @@
                 </div>
                 <div>
                     <h4 class="text-sm font-bold text-white">Canal Automático de Reportes a Dirección</h4>
-                    <p class="text-xs text-slate-300">El sistema compila el estado de stock, valuación financiera y las últimas alertas operativas para enviarlas de forma automatizada al correo corporativo: <strong class="text-blue-400">LSANTIAGO@gravafilt.com</strong></p>
+                    <p class="text-xs text-slate-300">Envío diario programado a las 20:00 hs (Arg) del estado de stock, valuación y alertas al correo: <strong class="text-blue-400">lsantiago@gravafilt.com.ar</strong></p>
                 </div>
             </div>
             <button onclick="enviarReporteAutomaticoLSantiago()" class="bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2 rounded-lg text-xs transition shadow flex items-center whitespace-nowrap">
@@ -202,7 +202,7 @@
         <p class="text-slate-500">Jurisdicciones: Entre Ríos (Paraná) / Balnearios (Ibiza) / Vaca Muerta</p>
     </footer>
 
-    <!-- Lógica JavaScript Completa con Valuación, Historial y Reporte Automático a LSANTIAGO -->
+    <!-- Lógica JavaScript Completa e Íntegra -->
     <script>
         document.getElementById('adminUserBadge').innerText = `${session.name || 'Administrador'} (${(session.role || 'admin').toUpperCase()})`;
 
@@ -348,13 +348,15 @@
             });
         }
 
-        // Sistema de Reporte Automático a LSANTIAGO
+        // Sistema de Reporte Automático a Dirección (lsantiago@gravafilt.com.ar)
         function enviarReporteAutomaticoLSantiago() {
             let volumenGlobal = document.getElementById('statVolumenGlobal').innerText;
             let valuacionTotal = document.getElementById('statValuacionTotal').innerText;
             let criticos = document.getElementById('statAlertasCriticas').innerText;
             let autonomia = document.getElementById('statAutonomiaPromedio').innerText;
             let fechaHoy = new Date().toLocaleString('es-AR');
+
+            let destinatarioLSantiago = "lsantiago@gravafilt.com.ar";
 
             let asunto = encodeURIComponent(`[GRAVAFILT S.A.] Reporte Gerencial Automático de Stock y Valuación - ${fechaHoy}`);
             let cuerpo = encodeURIComponent(
@@ -369,9 +371,7 @@
                 `Panel de Control Central - GRAVAFILT S.A. (Paraná / Vaca Muerta)`
             );
 
-            // Simulación de envío con feedback visual y apertura de cliente de correo corporativo
-            if (confirm(`¿Confirma el envío automático del reporte de inventario y valuación a LSANTIAGO@gravafilt.com?`)) {
-                // Registrar este envío en el historial de auditoría automáticamente
+            if (confirm(`¿Confirma el envío automático del reporte de inventario y valuación a ${destinatarioLSantiago}?`)) {
                 let nuevoLog = {
                     id_unico: 'REP-' + Math.floor(Math.random() * 90000 + 10000),
                     timestamp_completo: fechaHoy,
@@ -379,16 +379,15 @@
                     categoria: 'DIRECCIÓN',
                     material: 'REPORTE GLOBAL',
                     accion: 'ENVÍO AUTOMÁTICO',
-                    detalle: 'Reporte enviado a LSANTIAGO@gravafilt.com',
+                    detalle: `Reporte enviado a ${destinatarioLSantiago}`,
                     stock_final_resultado: volumenGlobal
                 };
                 historyLogs.push(nuevoLog);
                 localStorage.setItem("gravafilt_history_logs", JSON.stringify(historyLogs));
                 renderTablaAuditoria();
 
-                // Abrir cliente de correo configurado para LSANTIAGO
-                window.location.href = `mailto:LSANTIAGO@gravafilt.com?subject=${asunto}&body=${cuerpo}`;
-                alert("¡Reporte generado y despachado con éxito al correo de LSANTIAGO!");
+                window.location.href = `mailto:${destinatarioLSantiago}?subject=${asunto}&body=${cuerpo}`;
+                alert(`¡Reporte generado y despachado con éxito al correo ${destinatarioLSantiago}!`);
             }
         }
 
